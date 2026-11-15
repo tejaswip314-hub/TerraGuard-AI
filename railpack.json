@@ -1,20 +1,8 @@
-
 {
   "$schema": "https://schema.railpack.com",
   "provider": "python",
   "packages": {
     "python": "3.11"
-  },
-  "steps": {
-    "install": {
-      "commands": [
-        {
-          "src": "api/requirements.txt",
-          "dest": "api/requirements.txt"
-        },
-        "python -m pip install --no-cache-dir -r api/requirements.txt"
-      ]
-    }
   },
   "deploy": {
     "startCommand": "python api/server.py"
