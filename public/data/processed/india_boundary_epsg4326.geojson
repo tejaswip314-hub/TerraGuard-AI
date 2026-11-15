@@ -1,0 +1,21 @@
+{
+  "type": "Feature",
+  "properties": {
+    "name": "India",
+    "admin": "India",
+    "source": "GADM v4.1 (generalized for web use; public domain)",
+    "note": "Geographic extent only — RF v3 model coverage is Chamoli-only"
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [6.5, 68.0],
+        [6.5, 97.5],
+        [35.5, 97.5],
+        [35.5, 68.0],
+        [6.5, 68.0]
+      ]
+    ]
+  }
+}

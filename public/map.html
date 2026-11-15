@@ -4,14 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#060b14">
+  <meta name="description" content="TerraGuardAI — experimental landslide terrain susceptibility and rainfall-enhanced screening for Chamoli, Uttarakhand. Research prototype; not an operational warning system.">
   <title>TerraGuardAI — Map</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060b14'/%3E%3Cpath d='M10 46 L26 20 L36 36 L42 27 L54 46 Z' fill='%2338bdf8'/%3E%3Cpath d='M26 20 L30 27 L22 27 Z' fill='%23e8eef8'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="assets/leaflet.css">
-  <link rel="stylesheet" href="assets/terraguard.css">
+  <!-- Self-hosted Leaflet CSS (no CDN) -->
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <!-- TerraGuardAI stylesheet -->
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body data-page="map">
 
 <div id="app">
+
+  <!-- SVG sprite definitions -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-logo" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2 L22 20 H2 Z"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24"><path fill="currentColor" d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0-6v2m0 16v2M2 12h2m16 0h2"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path fill="currentColor" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path fill="currentColor" d="M6 18a4 4 0 1 1 .6-7.95A5.5 5.5 0 0 1 17.3 9.5 4.5 4.5 0 0 1 18 18H6z"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path fill="currentColor" d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+  </svg>
 
   <!-- ══ Top navigation ═══════════════════════════════════════════════════ -->
   <header class="topbar">
@@ -31,7 +45,7 @@
     <div class="area-chip" title="Current study area" id="areaChip">
       <span class="dot"></span>
       <span id="areaChipLabel">India</span>
-      <span class="chip-sub" id="areaChipSub">Overview · 36 States & UTs</span>
+      <span class="chip-sub" id="areaChipSub">Overview · 36 States &amp; UTs</span>
       <button class="area-chip-toggle" aria-label="Switch between India overview and Chamoli view">⁝</button>
     </div>
 
@@ -53,19 +67,18 @@
       <svg aria-hidden="true"><use href="#i-layers"/></svg> Layers
     </button>
     <button class="btn" type="button" data-sheet="info">
-      <svg aria-hidden="true"><use href="#i-cloud"/></svg> Weather & screening
+      <svg aria-hidden="true"><use href="#i-cloud"/></svg> Weather &amp; screening
     </button>
   </div>
 
   <!-- ══ Map stage ═══════════════════════════════════════════════════════ -->
   <main class="map-shell">
-    <div id="map" style="width: 100%; height: 100vh !important; min-height: 500px !important; background: #060a10;" role="application" aria-label="Interactive landslide susceptibility map"></div>
-    <div class="scrim" id="scrim"></div>
+    <div id="map" role="application" aria-label="Interactive landslide susceptibility map"></div>
 
     <!-- ── Left panel: layers, basemaps, legends ─────────────────────── -->
     <aside class="panel panel-left" id="panelLayers" aria-label="Map layers and legends">
       <div class="panel-head">
-        <h2><svg aria-hidden="true"><use href="#i-layers"/></svg> Layers & Legends</h2>
+        <h2><svg aria-hidden="true"><use href="#i-layers"/></svg> Layers &amp; Legends</h2>
         <button class="collapse-btn" type="button" data-collapse="panelLayers" aria-label="Collapse layers panel">
           <svg aria-hidden="true"><use href="#i-chevron"/></svg>
         </button>
@@ -75,7 +88,7 @@
         <section class="section">
           <div class="section-title">Basemap</div>
           <div class="bm-grid" id="bmGrid">
-            <button class="bm-btn active" type="button" data-bm="satellite">
+            <button class="bm-btn" type="button" data-bm="satellite">
               <span class="bm-swatch bm-sat"></span>
               <strong>Satellite</strong><span>Esri World Imagery</span>
             </button>
@@ -87,7 +100,7 @@
               <span class="bm-swatch bm-street"></span>
               <strong>Streets</strong><span>Esri World Street</span>
             </button>
-            <button class="bm-btn" type="button" data-bm="osm">
+            <button class="bm-btn active" type="button" data-bm="osm">
               <span class="bm-swatch bm-osm"></span>
               <strong>OpenStreetMap</strong><span>OSM standard</span>
             </button>
@@ -95,15 +108,40 @@
         </section>
 
         <section class="section">
-          <div class="section-title">Overlays</div>
+          <div class="section-title">Model</div>
+
+          <div class="model-pick" id="modelPick" role="radiogroup" aria-label="RF model selection">
+            <button class="model-btn active" type="button" data-model="india" role="radio" aria-checked="true">
+              <span class="model-btn-title"><span class="dot dot-green"></span> India-wide RF v1</span>
+              <span class="model-btn-sub">~1 km grid · 353 audited SRTM tiles · GSI national inventory · OOF ROC-AUC 0.93</span>
+            </button>
+            <button class="model-btn" type="button" data-model="chamoli" role="radio" aria-checked="false">
+              <span class="model-btn-title"><span class="dot dot-amber"></span> Chamoli pilot RF v3</span>
+              <span class="model-btn-sub">~30 m · 1999 Mw 6.6 event only · threshold 0.38 · NOT validated elsewhere</span>
+            </button>
+          </div>
+          <div class="scr-note" id="modelNote" style="margin-top:6px">
+            Terrain-only RF. Experimental; NOT a calibrated probability; do not use for emergency decisions.
+          </div>
 
           <label class="switch-row" for="tglSusceptibility">
             <span class="sw-text">
               <span class="sw-title">Terrain susceptibility</span>
-              <span class="sw-sub">RF v3 · frozen threshold 0.38</span>
+              <span class="sw-sub" id="susLabel">India RF v1 · frozen threshold 0.402</span>
             </span>
             <span class="switch">
               <input type="checkbox" id="tglSusceptibility" checked>
+              <span class="track"></span>
+            </span>
+          </label>
+
+          <label class="switch-row" for="tglCoverage">
+            <span class="sw-text">
+              <span class="sw-title">SRTM coverage footprint</span>
+              <span class="sw-sub">353 audited 1° tiles · outside = no prediction</span>
+            </span>
+            <span class="switch">
+              <input type="checkbox" id="tglCoverage">
               <span class="track"></span>
             </span>
           </label>
@@ -143,9 +181,9 @@
           <div class="section-title">Legend <span class="tag tag-warn">EXPERIMENTAL TERRAIN SUSCEPTIBILITY</span></div>
           <div class="legend">
             <div class="legend-bar" aria-hidden="true"></div>
-            <div class="legend-ticks"><span>LOW < 0.15</span><span>MODERATE 0.15&ndash;0.38</span><span>HIGH &ge; 0.38</span></div>
+            <div class="legend-ticks"><span>LOW &lt; 0.15</span><span>MODERATE 0.15–0.38</span><span>HIGH ≥ 0.38</span></div>
             <div class="legend-note">
-              Continuous gradient: green (low) -> yellow -> orange -> red (high) over the absolute RF v3 score.
+              Continuous gradient: green (low) → yellow → orange → red (high) over the absolute RF v3 score.
               <strong>0.38</strong> = frozen HIGH threshold. Categories are relative experimental model scores, not danger levels.
               Experimental terrain susceptibility assessment; not a landslide prediction or safety determination.
             </div>
@@ -156,10 +194,10 @@
           <div class="section-title">Legend · screening</div>
           <div class="legend">
             <div class="legend-swatches">
-              <span><i class="sw sw-low"></i> low < 0.15</span>
+              <span><i class="sw sw-low"></i> low &lt; 0.15</span>
               <span><i class="sw sw-mod"></i> moderate 0.15–0.40</span>
               <span><i class="sw sw-elev"></i> elevated 0.40–0.70</span>
-              <span><i class="sw sw-high"></i> high &ge; 0.70</span>
+              <span><i class="sw sw-high"></i> high ≥ 0.70</span>
             </div>
             <div class="legend-note">Bar colours in the screening panel. Terrain bar is the RF v3 score alone.</div>
           </div>
@@ -176,7 +214,7 @@
             <button class="state-btn" data-state="chamoli" title="Chamoli · Chamoli">Chamoli</button>
           </div>
           <div class="state-note">RF v3 model: Chamoli District AOI only. India map view shown; susceptibility not assessed outside Chamoli.</div>
-        </div>
+        </section>
 
         <div class="scr-note" style="margin-top:12px;">
           Static Esri / OSM basemap tiles — not live imagery. Click the map to inspect a point.
@@ -343,7 +381,7 @@
         <span class="dot" id="sbStatusDot"></span>
         <span class="trunc" id="sbStatus">initialising…</span>
         <span class="sb-sep"></span>
-        <span class="trunc" id="sbBasemap">Esri World Imagery</span>
+        <span class="trunc" id="sbBasemap">OpenStreetMap</span>
       </div>
     </footer>
   </main>
@@ -351,7 +389,9 @@
   <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 </div>
 
-<script src="assets/leaflet.js"></script>
-<script src="assets/terraguard.js"></script>
+<!-- Self-hosted Leaflet JS (no CDN) -->
+<script src="/vendor/leaflet/leaflet.js"></script>
+<!-- TerraGuardAI application -->
+<script src="/app.js"></script>
 </body>
 </html>

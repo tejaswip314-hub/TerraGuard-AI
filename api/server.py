@@ -24,7 +24,7 @@ mimetypes.add_type('image/png', '.png')
 
 # ── Paths ─────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent   # D:\TerraGuardAI
-FRONTEND_DIR = PROJECT_ROOT / "frontend" / "public"     # Static files root
+FRONTEND_DIR = PROJECT_ROOT / "public"     # Static files root (Render deploy path)
 
 _API_DIR = str(Path(__file__).resolve().parent)
 if _API_DIR not in sys.path:
