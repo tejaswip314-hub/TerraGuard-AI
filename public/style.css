@@ -202,10 +202,13 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius
 .wx-stat .v small { font-family: var(--font); font-size: 0.62rem; color: var(--muted); margin-left: 2px; }
 
 .wx-block { margin-top: 12px; }
-.wx-tabs { display: flex; align-items: center; gap: 4px; margin-top: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-.wx-tab { appearance: none; border-radius: 6px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.15px; }
-.wx-tab:hover { color: var(--text); background: rgba(148, 163, 184, 0.1); }
-.wx-tab.active { color: var(--cyan); background: rgba(56, 189, 248, 0.12); border-radius: 6px; }
+.wx-tabs { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(148, 163, 184, 0.06); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.wx-tab { appearance: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 7px 18px; border: 1px solid var(--line); border-radius: 999px; background: rgba(20, 27, 36, 0.55); color: var(--muted); font-family: inherit; font-size: 0.73rem; font-weight: 600; letter-spacing: 0.02em; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03); transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.18s ease; }
+.wx-tab:hover { color: var(--text); background: rgba(148, 163, 184, 0.12); border-color: var(--line-strong); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 14px rgba(0, 0, 0, 0.28); }
+.wx-tab:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.wx-tab.active { color: var(--cyan); border-color: rgba(56, 189, 248, 0.55); background: rgba(56, 189, 248, 0.14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 3px rgba(56, 189, 248, 0.10), 0 0 18px rgba(56, 189, 248, 0.22); }
+.wx-tab.active:hover { background: rgba(56, 189, 248, 0.18); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 3px rgba(56, 189, 248, 0.12), 0 0 22px rgba(56, 189, 248, 0.28); }
+@media (max-width: 760px) { .wx-tab { padding: 6px 15px; font-size: 0.7rem; } .wx-tabs { gap: 6px; } }
 
 .wx-block-title { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: var(--faint); margin-bottom: 7px; }
 .wx-block-title .tag { margin-left: auto; }
