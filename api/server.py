@@ -951,15 +951,16 @@ class ReusableTCPServer(socketserver.TCPServer):
 
 
 def main():
-    port = 5000
-    with ReusableTCPServer(("", port), TerraGuardHandler) as httpd:
+    port = int(os.environ.get("PORT", 5000))
+    with ReusableTCPServer(("0.0.0.0", port), TerraGuardHandler) as httpd:
         print("=" * 60)
         print("  TerraGuardAI Server")
         print("=" * 60)
-        print(f"  Running at:  http://localhost:{port}")
+        print(f"  Running at:  http://0.0.0.0:{port}")
         print(f"  Frontend:    {FRONTEND_DIR}")
-        print(f"  Dashboard:   http://localhost:{port}/")
-        print(f"  Map page:    http://localhost:{port}/map.html")
+        print(f"  Dashboard:   http://0.0.0.0:{port}/")
+        print(f"  Map page:    http://0.0.0.0:{port}/map.html")
+        print(f"  Local URL:   http://localhost:{port}/")
         print()
         print("  API endpoints:")
         print("    /health")
