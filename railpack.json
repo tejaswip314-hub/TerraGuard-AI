@@ -1,3 +1,4 @@
+
 {
   "$schema": "https://schema.railpack.com",
   "provider": "python",
@@ -7,7 +8,10 @@
   "steps": {
     "install": {
       "commands": [
-        "...",
+        {
+          "src": "api/requirements.txt",
+          "dest": "api/requirements.txt"
+        },
         "python -m pip install --no-cache-dir -r api/requirements.txt"
       ]
     }
