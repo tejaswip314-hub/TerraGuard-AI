@@ -1,5 +1,3 @@
-# Root requirements.txt — delegates to api/requirements.txt so Railpack's
-# standard Python provider install path picks up all runtime dependencies
-# (including rasterio) into the production site-packages, which is included
-# in the deployed image. Do not duplicate or remove entries.
--r api/requirements.txt
+flask==3.0.3
+flask-cors==4.0.1
+rasterio
