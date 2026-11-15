@@ -44,14 +44,11 @@ below are NOT derived from Chamoli landslide data.
 
 import datetime
 import os
-import threading
-import time
 import urllib.parse
-import urllib.request
 
-OPEN_METEO_BASE = "https://api.open-meteo.com/v1/forecast"
-REQUEST_TIMEOUT_S = 20
-CACHE_TTL_S = 300.0  # avoid hammering Open-Meteo on rapid map clicks
+# ── Reference policy & shared cache ──────────────────────────────────────────
+# Open-Meteo caching/rate-limit handling now lives in api/open_meteo_client.py
+# (12-minute TTL, singleflight, 429 backoff, stale fallback, structured logs).
 
 # ── Illustrative, UNCALIBRATED reference rainfall amounts (mm) ────────────────
 # At A == R_k the per-window indicator N_k == 0.5. Values are chosen to be
@@ -221,43 +218,28 @@ def indicator(windows):
     }
 
 
-# ── Open-Meteo fetch (with TTL cache; 1 request per ~5 min per ~1.1 km cell) ──
-_cache_lock = threading.Lock()
-_cache = {}  # (lat2, lon2) -> (fetched_epoch, payload)
+# ── Open-Meteo fetch — delegated to the shared rate-limit-proof client ───────
+# The shared client (api/open_meteo_client.py) provides: unified /weather +
+# /screening parameters, a 12-minute thread-safe TTL cache, singleflight
+# (one in-flight upstream request), 429/Retry-After exponential backoff,
+# and stale-cache fallback with timestamps — all logged.
+try:
+    import open_meteo_client as _om
+except ImportError:
+    _om = None
 
 
 def fetch_open_meteo(lat, lon, force_refresh=False):
-    """Fetch raw Open-Meteo JSON with past_days=7 + forecast_days=3, 5-minute TTL cache.
+    """Compatibility wrapper — returns (payload, from_cache, is_stale).
 
-    Raises urllib.error on network failure; callers must handle it and report
-    rainfall as unavailable (never zero-filled).
+    Backed by the shared cache (api/open_meteo_client.py). On upstream failure
+    with no cached entry, raises the underlying error (callers treat rainfall
+    as unavailable — NEVER zero-filled or fabricated).
     """
-    key = (round(float(lat), 2), round(float(lon), 2))
-    now = time.time()
-    if not force_refresh:
-        with _cache_lock:
-            entry = _cache.get(key)
-            if entry and (now - entry[0]) < CACHE_TTL_S:
-                return entry[1], True  # cached
-    params = urllib.parse.urlencode({
-        "latitude": lat,
-        "longitude": lon,
-        "current": "precipitation,rain,showers,precipitation_probability,wind_gusts_10m",
-        "hourly": "precipitation,rain,showers,precipitation_probability",
-        "daily": "precipitation_sum,rain_sum,precipitation_probability_max",
-        "past_days": "7",
-        "forecast_days": "3",
-        "timezone": "Asia/Kolkata",
-    })
-    url = f"{OPEN_METEO_BASE}?{params}"
-    req = urllib.request.Request(url, headers={"User-Agent": "TerraGuardAI/1.0"})
-    with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_S) as response:
-        data = response.read().decode("utf-8")
-    import json
-    payload = json.loads(data)
-    with _cache_lock:
-        _cache[key] = (now, payload)
-    return payload, False
+    if _om is None:
+        raise RuntimeError("open_meteo_client module unavailable")
+    payload, from_cache, fetched_epoch, is_stale = _om.fetch_forecast(lat, lon)
+    return payload, from_cache, is_stale
 
 
 def parse_anchor_hour(payload):

@@ -494,8 +494,10 @@ def handle_screening(handler):
     alpha = su.effective_alpha(query_alpha=params.get("alpha", [None])[0])
 
     try:
-        payload, from_cache = su.fetch_open_meteo(lat, lon, force_refresh=False)
+        import open_meteo_client as om
+        payload, from_cache, fetched_epoch, is_stale = om.fetch_forecast(lat, lon)
         rain_block = su.build_rainfall_block(payload)
+        fetched_at_ist = om.iso_ist_from_epoch(fetched_epoch)
     except Exception as e:
         send_json(handler, {
             "service": "TerraGuard AI API",
@@ -506,7 +508,7 @@ def handle_screening(handler):
                 "frozen_threshold": FROZEN_THRESHOLD,
             },
             "rainfall": {"status": "unavailable", "error": f"Open-Meteo fetch failed: {str(e)[:150]}",
-                         "source": "Open-Meteo API — live request failed"},
+                         "source": "Open-Meteo API — live request failed (no cached data available)"},
             "combined": {"combined_screening_index": None, "alpha": alpha,
                          "rainfall_normalized": None, "rainfall_basis": basis,
                          "reason": "Rainfall unavailable — combined index not computed"},
@@ -519,6 +521,17 @@ def handle_screening(handler):
     rain_block["forecast"]["anchor_hour_ist"] = rain_block.get("anchor_hour_ist")
     rain_block["status"] = rain_block.get("observed", {}).get("status", "partial")
     rain_block["from_cache"] = bool(from_cache)
+    rain_block["stale"] = bool(is_stale)
+    if is_stale:
+        rain_block["source"] = "Open-Meteo API (cached — upstream unavailable; values from " + fetched_at_ist + ")"
+        rain_block["stale_warning"] = f"Upstream Open-Meteo unavailable; rainfall from cache fetched at {fetched_at_ist}. Not live."
+        rain_block["fetched_at_ist"] = fetched_at_ist
+    elif from_cache:
+        rain_block["source"] = "Open-Meteo API (cached, <12 min old)"
+        rain_block["stale_warning"] = ""
+        rain_block["fetched_at_ist"] = fetched_at_ist
+    else:
+        rain_block["fetched_at_ist"] = fetched_at_ist
 
     model = (params.get("model", ["india"])[0] or "india").lower()
     if model not in ("india", "chamoli"):
@@ -566,12 +579,14 @@ def handle_screening(handler):
         "source": rain_block.get("source"),
         "fetched_at_ist": rain_block.get("fetched_at_ist"),
         "from_cache": bool(from_cache),
+        "stale": bool(rain_block.get("stale")),
+        "stale_warning": rain_block.get("stale_warning", ""),
         "no_fabricated_predictions": True,
     })
 
 
 def handle_weather(handler):
-    """Fetch weather from Open-Meteo API (full current/hourly/daily parameter set)."""
+    """Fetch weather via the shared Open-Meteo cache (same data as screening)."""
     params = urllib.parse.parse_qs(urllib.parse.urlsplit(handler.path).query)
     try:
         lat = float(params.get("lat", [30.33])[0])
@@ -580,53 +595,44 @@ def handle_weather(handler):
         send_error_json(handler, 400, "Missing or invalid 'lat'/'lon' query parameters")
         return
 
-    current_vars = ("temperature_2m,apparent_temperature,relative_humidity_2m,"
-                    "precipitation,precipitation_probability,weather_code,"
-                    "cloud_cover,surface_pressure,wind_speed_10m,wind_gusts_10m,is_day")
-    hourly_vars = ("temperature_2m,apparent_temperature,relative_humidity_2m,"
-                   "precipitation,precipitation_probability,weather_code,"
-                   "wind_speed_10m,wind_gusts_10m,is_day")
-    daily_vars = ("weather_code,temperature_2m_max,temperature_2m_min,"
-                  "apparent_temperature_max,apparent_temperature_min,"
-                  "precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max")
-
     try:
-        url = (
-            "https://api.open-meteo.com/v1/forecast?"
-            f"latitude={lat}&longitude={lon}"
-            f"&current={current_vars}"
-            f"&hourly={hourly_vars}"
-            f"&daily={daily_vars}"
-            "&forecast_days=7&timezone=Asia/Kolkata"
-        )
-        req = urllib.request.Request(url, headers={"User-Agent": "TerraGuardAI/1.0"})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            parsed = json.loads(resp.read().decode("utf-8"))
+        import open_meteo_client as om
+        payload, from_cache, fetched_epoch, is_stale = om.fetch_forecast(lat, lon)
+        fetched_at_ist = om.iso_ist_from_epoch(fetched_epoch)
     except Exception as e:
         send_json(handler, {
             "service": "TerraGuard AI API",
             "status": "weather_unavailable",
             "coordinates": {"latitude": lat, "longitude": lon},
-            "error": f"Open-Meteo fetch failed: {str(e)[:150]}",
+            "error": f"Open-Meteo fetch failed and no cached data available: {str(e)[:150]}",
+            "stale": False,
+            "from_cache": False,
             "no_fabricated_data": True,
         })
         return
 
-    import datetime
-    ist = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-    fetched_at_ist = datetime.datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S IST")
+    if is_stale:
+        source = f"Open-Meteo API (cached — upstream unavailable; values from {fetched_at_ist})"
+        status = "weather_stale"
+    elif from_cache:
+        source = "Open-Meteo API (cached, <12 min old)"
+        status = "weather_ok"
+    else:
+        source = "Open-Meteo API (https://api.open-meteo.com/v1/forecast) — live"
+        status = "weather_ok"
 
     send_json(handler, {
         "service": "TerraGuard AI API",
-        "status": "weather_ok",
+        "status": status,
         "coordinates": {"latitude": lat, "longitude": lon},
-        "timezone": parsed.get("timezone", "Asia/Kolkata"),
-        "source": "Open-Meteo API (https://api.open-meteo.com/v1/forecast) — live",
+        "timezone": payload.get("timezone", "Asia/Kolkata"),
+        "source": source,
         "fetched_at_ist": fetched_at_ist,
-        "from_cache": False,
-        "current": parsed.get("current", {}),
-        "hourly": parsed.get("hourly", {}),
-        "daily": parsed.get("daily", {}),
+        "from_cache": bool(from_cache),
+        "stale": bool(is_stale),
+        "current": payload.get("current", {}),
+        "hourly": payload.get("hourly", {}),
+        "daily": payload.get("daily", {}),
         "no_fabricated_data": True,
     })
 
@@ -951,6 +957,10 @@ class ReusableTCPServer(socketserver.TCPServer):
 
 
 def main():
+    import logging
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s %(levelname)-5s %(name)s: %(message)s",
+                        datefmt="%H:%M:%S")
     port = int(os.environ.get("PORT", 5000))
     with ReusableTCPServer(("0.0.0.0", port), TerraGuardHandler) as httpd:
         print("=" * 60)
