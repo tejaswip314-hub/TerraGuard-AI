@@ -1,0 +1,44 @@
+{
+  "precision": 0.02021018593371059,
+  "recall": 1.0,
+  "f1": 0.039619651347068144,
+  "roc_auc": 0.5957304869913276,
+  "pr_auc": 0.02021018593371059,
+  "confusion_matrix": {
+    "TN": 287,
+    "FP": 1212,
+    "FN": 0,
+    "TP": 25
+  },
+  "test_set_size": 1524,
+  "test_landslide_count": 25,
+  "test_background_count": 1499,
+  "baseline_accuracy": 0.9835958005249343,
+  "predictors": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "train_samples": 3520,
+  "test_samples": 1524,
+  "landslide_train": 24,
+  "landslide_test": 25,
+  "background_train": 3496,
+  "background_test": 1499,
+  "class_imbalance_train": "3496:24",
+  "class_imbalance_test": "1499:25",
+  "split_scheme": "median-lon: 24 train polys (west), 25 test polys (east); 70/30 background split",
+  "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline.joblib",
+  "feature_list_path": "D:\\TerraGuardAI\\models\\rf_pixel_feature_list.json",
+  "metadata_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_metadata.json",
+  "limitations": {
+    "single_event": "1999 Chamoli earthquake only (49 landslide polygons)",
+    "provisional_background": "Background samples are provisional, not confirmed absolute absences",
+    "limited_generalization": "Model trained on single earthquake event; cannot generalize beyond Chamoli",
+    "spatial_autocorrelation": "Pixels within same polygon are not independent; geographic split reduces but does not eliminate autocorrelation",
+    "class_imbalance": "~100:1 background:landslide ratio in both train and test",
+    "one_event_training": "Only 49 independent landslide polygons available for training"
+  }
+}

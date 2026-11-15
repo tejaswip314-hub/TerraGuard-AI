@@ -1,0 +1,68 @@
+{
+  "root_cause": "CRS mismatch: UTM coordinates (EPSG:32644) vs DEM degrees (EPSG:4326)",
+  "elevation_recovery": {
+    "valid": 760,
+    "total": 5044,
+    "pct_valid": 15.1,
+    "min": 636.0,
+    "max": 2670.0,
+    "mean": 1471.45
+  },
+  "predictor_audit": {
+    "elevation": {
+      "fixed_valid": 760,
+      "fixed_pct_missing": 15.1,
+      "original_valid": 0,
+      "original_pct_missing": 100.0
+    },
+    "slope": {
+      "fixed_valid": 906,
+      "fixed_pct_missing": 18.0,
+      "original_valid": 906,
+      "original_pct_missing": 82.0
+    },
+    "aspect": {
+      "fixed_valid": 5044,
+      "fixed_pct_missing": 0.0,
+      "original_valid": 5044,
+      "original_pct_missing": 0.0
+    },
+    "aspect_sin": {
+      "fixed_valid": 5044,
+      "fixed_pct_missing": 0.0,
+      "original_valid": 5044,
+      "original_pct_missing": 0.0
+    },
+    "aspect_cos": {
+      "fixed_valid": 5044,
+      "fixed_pct_missing": 0.0,
+      "original_valid": 5044,
+      "original_pct_missing": 0.0
+    },
+    "hillshade": {
+      "fixed_valid": 5044,
+      "fixed_pct_missing": 0.0,
+      "original_valid": 5044,
+      "original_pct_missing": 0.0
+    }
+  },
+  "slope_issue": {
+    "orig_pct_missing": 82.0,
+    "fixed_pct_missing": 18.0
+  },
+  "sample_coverage": {
+    "total": 5044,
+    "outside_dem_coverage": 4284,
+    "pct_outside": 84.9
+  },
+  "files_generated": [
+    "data/processed/pixel_rf_dataset_elevation_fixed.csv",
+    "reports/terrain_predictor_recovery_report.txt"
+  ],
+  "unresolved_limitations": [
+    "4,284/5,044 samples outside n30_e078 DEM coverage",
+    "Slope needs recomputation from recovered elevation",
+    "Single-event dataset limitation",
+    "Generalizability beyond study area"
+  ]
+}

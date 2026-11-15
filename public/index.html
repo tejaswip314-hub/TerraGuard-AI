@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#060b14">
+  <meta name="description" content="TerraGuardAI — experimental landslide terrain susceptibility and rainfall-enhanced screening for Chamoli, Uttarakhand. Research prototype; not an operational warning system.">
+  <title>TerraGuardAI — Landslide Situation Awareness</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060b14'/%3E%3Cpath d='M10 46 L26 20 L36 36 L42 27 L54 46 Z' fill='%2338bdf8'/%3E%3Cpath d='M26 20 L30 27 L22 27 Z' fill='%23e8eef8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e3fFimgLFFafNetoYWLqVyM/miqR5cxuv6UvQ6x/w="
+    crossorigin="/">
+  <link rel="stylesheet" href="assets/terraguard.css">
+</head>
+<body data-page="dashboard">
+
+<div id="app">
+
+  <!-- ══ Top navigation ═══════════════════════════════════════════════════ -->
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="TerraGuardAI home">
+      <svg class="brand-mark" style="color:#38bdf8" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span class="brand-text">
+        <span class="brand-name">TerraGuard<em>AI</em></span>
+        <span class="brand-sub">Landslide situation awareness</span>
+      </span>
+    </a>
+
+    <nav class="mainnav" aria-label="Primary">
+      <a class="navlink" data-nav="dashboard" href="/">Dashboard</a>
+      <a class="navlink" data-nav="map" href="/map.html">Map</a>
+    </nav>
+
+    <div class="area-chip" title="Current study area" id="areaChip">
+      <span class="dot"></span>
+      <span id="areaChipLabel">India</span>
+      <span class="chip-sub" id="areaChipSub">Overview · 36 States & UTs</span>
+      <button class="area-chip-toggle" aria-label="Switch between India overview and Chamoli view">⁝</button>
+    </div>
+
+    <span class="topbar-spacer"></span>
+
+    <div class="topbar-actions">
+      <button class="btn" id="btnLocate" type="button" title="Center the map on your device location">
+        <svg aria-hidden="true"><use href="#i-locate"/></svg><span class="txt">My location</span>
+      </button>
+      <button class="btn btn-icon" id="btnFullscreen" type="button" title="Toggle fullscreen" aria-label="Toggle fullscreen">
+        <svg id="fsIcon" aria-hidden="true"><use href="#i-expand"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ Mobile sheet toggles ══════════════════════════════════════════════ -->
+  <div class="mobilebar" role="toolbar" aria-label="Panels">
+    <button class="btn" type="button" data-sheet="layers">
+      <svg aria-hidden="true"><use href="#i-layers"/></svg> Layers
+    </button>
+    <button class="btn" type="button" data-sheet="info">
+      <svg aria-hidden="true"><use href="#i-cloud"/></svg> Weather & screening
+    </button>
+  </div>
+
+  <!-- ══ Map stage ═══════════════════════════════════════════════════════ -->
+  <main class="map-shell">
+    <div id="map" style="width: 100%; height: 100vh !important; min-height: 500px !important; background: #060a10;" role="application" aria-label="Interactive landslide susceptibility map"></div>
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ── Left panel: layers, basemaps, legends ─────────────────────── -->
+    <aside class="panel panel-left" id="panelLayers" aria-label="Map layers and legends">
+      <div class="panel-head">
+        <h2><svg aria-hidden="true"><use href="#i-layers"/></svg> Layers & Legends</h2>
+        <button class="collapse-btn" type="button" data-collapse="panelLayers" aria-label="Collapse layers panel">
+          <svg aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+      </div>
+      <div class="panel-body">
+
+        <section class="section">
+          <div class="section-title">Basemap</div>
+          <div class="bm-grid" id="bmGrid">
+            <button class="bm-btn active" type="button" data-bm="satellite">
+              <span class="bm-swatch bm-sat"></span>
+              <strong>Satellite</strong><span>Esri World Imagery</span>
+            </button>
+            <button class="bm-btn" type="button" data-bm="topo">
+              <span class="bm-swatch bm-topo"></span>
+              <strong>Topographic</strong><span>Esri World Topo</span>
+            </button>
+            <button class="bm-btn" type="button" data-bm="streets">
+              <span class="bm-swatch bm-street"></span>
+              <strong>Streets</strong><span>Esri World Street</span>
+            </button>
+            <button class="bm-btn" type="button" data-bm="osm">
+              <span class="bm-swatch bm-osm"></span>
+              <strong>OpenStreetMap</strong><span>OSM standard</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title">Overlays</div>
+
+          <label class="switch-row" for="tglSusceptibility">
+            <span class="sw-text">
+              <span class="sw-title">Terrain susceptibility</span>
+              <span class="sw-sub">RF v3 · frozen threshold 0.38</span>
+            </span>
+            <span class="switch">
+              <input type="checkbox" id="tglSusceptibility" checked>
+              <span class="track"></span>
+            </span>
+          </label>
+
+          <div class="slider-row">
+            <div class="slider-top">
+              <label for="opacityRange">Susceptibility opacity</label>
+              <output id="opacityOut" for="opacityRange">40%</output>
+            </div>
+            <input type="range" id="opacityRange" min="0" max="100" step="1" value="40" aria-label="Susceptibility overlay opacity">
+          </div>
+
+          <label class="switch-row" for="tglInventory">
+            <span class="sw-text">
+              <span class="sw-title">Landslide inventory</span>
+              <span class="sw-sub">49 mapped polygons · 1999 event</span>
+            </span>
+            <span class="switch">
+              <input type="checkbox" id="tglInventory" checked>
+              <span class="track"></span>
+            </span>
+          </label>
+
+          <label class="switch-row" for="tglScreening">
+            <span class="sw-text">
+              <span class="sw-title">Rainfall screening panel</span>
+              <span class="sw-sub">Open-Meteo · live · UNCALIBRATED</span>
+            </span>
+            <span class="switch">
+              <input type="checkbox" id="tglScreening" checked>
+              <span class="track"></span>
+            </span>
+          </label>
+        </section>
+
+        <section class="section">
+          <div class="section-title">Legend <span class="tag tag-warn">EXPERIMENTAL TERRAIN SUSCEPTIBILITY</span></div>
+          <div class="legend">
+            <div class="legend-bar" aria-hidden="true"></div>
+            <div class="legend-ticks"><span>LOW < 0.15</span><span>MODERATE 0.15&ndash;0.38</span><span>HIGH &ge; 0.38</span></div>
+            <div class="legend-note">
+              Continuous gradient: green (low) -> yellow -> orange -> red (high) over the absolute RF v3 score.
+              <strong>0.38</strong> = frozen HIGH threshold. Categories are relative experimental model scores, not danger levels.
+              Experimental terrain susceptibility assessment; not a landslide prediction or safety determination.
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title">Legend · screening</div>
+          <div class="legend">
+            <div class="legend-swatches">
+              <span><i class="sw sw-low"></i> low < 0.15</span>
+              <span><i class="sw sw-mod"></i> moderate 0.15–0.40</span>
+              <span><i class="sw sw-elev"></i> elevated 0.40–0.70</span>
+              <span><i class="sw sw-high"></i> high &ge; 0.70</span>
+            </div>
+            <div class="legend-note">Bar colours in the screening panel. Terrain bar is the RF v3 score alone.</div>
+          </div>
+        </section>
+
+        <section class="section" id="stateNavSection">
+          <div class="section-title">India navigation</div>
+          <div class="state-buttons">
+            <button class="state-btn active" data-state="india" title="India overview">India</button>
+            <button class="state-btn" data-state="maharashtra" title="Maharashtra">Maharashtra</button>
+            <button class="state-btn" data-state="gujarat" title="Gujarat">Gujarat</button>
+            <button class="state-btn" data-state="rajasthan" title="Rajasthan">Rajasthan</button>
+            <button class="state-btn" data-state="uttarpradesh" title="Uttar Pradesh">UP</button>
+            <button class="state-btn" data-state="chamoli" title="Chamoli · Chamoli">Chamoli</button>
+          </div>
+          <div class="state-note">RF v3 model: Chamoli District AOI only. India map view shown; susceptibility not assessed outside Chamoli.</div>
+        </div>
+
+        <div class="scr-note" style="margin-top:12px;">
+          Static Esri / OSM basemap tiles — not live imagery. Click the map to inspect a point.
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Right stack: weather + screening ──────────────────────────── -->
+    <div class="right-stack" id="rightStack">
+
+      <aside class="panel panel-weather" id="panelWeather" aria-label="Weather">
+        <div class="panel-head">
+          <h2><svg aria-hidden="true"><use href="#i-cloud"/></svg> Weather</h2>
+          <span class="head-src" id="wxHeadSrc">Open-Meteo</span>
+          <button class="collapse-btn" type="button" data-collapse="panelWeather" aria-label="Collapse weather panel">
+            <svg aria-hidden="true"><use href="#i-chevron"/></svg>
+          </button>
+        </div>
+        <div class="panel-body" id="weatherBody">
+          <div class="wx-place">
+            <strong id="wxPlaceLabel">Chamoli · Uttarakhand</strong>
+            <span class="upd" id="wxUpdated">—</span>
+          </div>
+
+          <div id="wxLoading">
+            <div class="wx-skel" style="margin-top:10px"></div>
+            <div class="wx-skel" style="height:64px"></div>
+          </div>
+
+          <div id="wxContent" hidden>
+            <div class="wx-current">
+              <div class="wx-icon" id="wxIcon" aria-hidden="true">◌</div>
+              <div class="wx-temp"><span class="val" id="wxTemp">—</span><span class="unit">°C</span></div>
+              <div class="wx-meta">
+                <div class="wx-cond" id="wxCondition">—</div>
+                <div class="wx-feels" id="wxFeels">Feels like —</div>
+              </div>
+            </div>
+
+            <div class="wx-grid">
+              <div class="wx-stat"><div class="k">Humidity</div><div class="v"><span id="wxHumidity">—</span><small>%</small></div></div>
+              <div class="wx-stat"><div class="k">Wind</div><div class="v"><span id="wxWind">—</span><small>km/h</small></div></div>
+              <div class="wx-stat"><div class="k">Precipitation</div><div class="v"><span id="wxPrecip">—</span><small>mm</small></div></div>
+              <div class="wx-stat"><div class="k">Wind gusts</div><div class="v"><span id="wxGust">—</span><small>km/h</small></div></div>
+            </div>
+
+            <div class="wx-tabs" role="tablist" aria-label="Forecast views">
+              <button class="wx-tab active" type="button" data-wxtab="hourly" role="tab" aria-selected="true">Hourly</button>
+              <button class="wx-tab" type="button" data-wxtab="daily" role="tab" aria-selected="false">7-day</button>
+              <span class="tag tag-fct" style="margin-left:auto">FORECAST</span>
+            </div>
+
+            <div id="wxHourlyWrap">
+              <div class="wx-hourly" id="wxHourly"><div class="wx-msg">—</div></div>
+            </div>
+            <div id="wxDailyWrap" hidden>
+              <div class="wx-daily" id="wxDaily"><div class="wx-msg">—</div></div>
+            </div>
+
+            <div class="wx-msg" style="margin-top:8px;">
+              Model values from Open-Meteo · point forecast, not observed rainfall.
+            </div>
+          </div>
+
+          <div class="wx-error" id="wxError" hidden>
+            <span id="wxErrorMsg">Weather unavailable.</span>
+            <button class="btn" type="button" id="btnRetryWeather" style="margin-top:7px;">Retry</button>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="panel panel-screening" id="panelScreening" aria-label="Rainfall-enhanced screening">
+        <div class="panel-head">
+          <h2><svg aria-hidden="true"><use href="#i-rain"/></svg> Rainfall Screening</h2>
+          <span class="tag tag-warn">EXPERIMENTAL</span>
+          <button class="collapse-btn" type="button" data-collapse="panelScreening" aria-label="Collapse screening panel">
+            <svg aria-hidden="true"><use href="#i-chevron"/></svg>
+          </button>
+        </div>
+        <div class="panel-body" id="scrPanelBody">
+
+          <div class="scr-loading" id="scrLoading">Loading screening signal…</div>
+          <div class="scr-error" id="scrError" hidden></div>
+
+          <div id="scrBody" hidden>
+            <div class="scr-combined">
+              <div class="top">
+                <div class="cap">Combined screening index</div>
+                <div class="big" id="scrCombined">—</div>
+              </div>
+              <div style="text-align:right">
+                <div class="scr-kv"><span class="k">α (alpha)</span><span class="v" id="scrAlpha">1.0</span></div>
+                <div class="sub">0–1 · UNCALIBRATED</div>
+              </div>
+            </div>
+            <div class="bar"><span id="scrCombinedBar" style="background:linear-gradient(90deg,#fb923c,#ef4444)"></span></div>
+            <div class="scr-note" id="scrFormula">S = clamp₀₁( P_terrain × (1 + α × N_rain) )</div>
+          </div>
+
+          <div class="scr-terrain">
+            <div>
+              <div class="lbl">Terrain susceptibility · RF v3</div>
+              <div class="big" id="scrTerrain">—</div>
+            </div>
+            <span class="tag tag-muted class" id="scrTerrainClass">—</span>
+          </div>
+          <div class="bar"><span id="scrTerrainBar" style="background:linear-gradient(90deg,#38bdf8,#0ea5e9)"></span></div>
+          <div class="scr-kv"><span class="k">Frozen threshold</span><span class="v" id="scrThreshold">0.38</span></div>
+          <div class="scr-note">Terrain-only score from the frozen RF v3 model. Uncalibrated; not a probability.</div>
+
+          <div class="scr-sec">
+            <div class="scr-sec-head">Observed rainfall <span class="tag tag-obs">OBSERVED</span></div>
+            <div class="scr-row"><span class="lbl">1 h · <span id="scrObs1hR">10</span> mm ref</span><span class="val" id="scrObs1h">—</span></div>
+            <div class="scr-row"><span class="lbl">3 h · <span id="scrObs3hR">25</span> mm ref</span><span class="val" id="scrObs3h">—</span></div>
+            <div class="scr-row"><span class="lbl">24 h · <span id="scrObs24hR">80</span> mm ref</span><span class="val" id="scrObs24h">—</span></div>
+            <div class="scr-row"><span class="lbl">72 h · <span id="scrObs72hR">150</span> mm ref</span><span class="val" id="scrObs72h">—</span></div>
+            <div class="scr-row"><span class="lbl">7 d · <span id="scrObs7dR">250</span> mm ref</span><span class="val" id="scrObs7d">—</span></div>
+          </div>
+
+          <div class="scr-sec">
+            <div class="scr-sec-head">Normalized rainfall indicator</div>
+            <div class="scr-row"><span class="lbl">N<sub>rain</sub> (0–1, max of complete windows)</span><span class="val" id="scrNRain">—</span></div>
+            <div class="bar"><span id="scrNRainBar" style="background:#38bdf8"></span></div>
+            <div class="scr-note" id="scrRainNote">—</div>
+          </div>
+
+          <div class="scr-sec">
+            <div class="scr-sec-head">Forecast rainfall <span class="tag tag-fct">FORECAST</span></div>
+            <div class="scr-row"><span class="lbl">1 h · <span id="scrFct1hR">10</span> mm ref</span><span class="val" id="scrFct1h">—</span></div>
+            <div class="scr-row"><span class="lbl">3 h · <span id="scrFct3hR">25</span> mm ref</span><span class="val" id="scrFct3h">—</span></div>
+            <div class="scr-row"><span class="lbl">24 h · <span id="scrFct24hR">80</span> mm ref</span><span class="val" id="scrFct24h">—</span></div>
+            <div class="scr-row"><span class="lbl">N<sub>rain</sub> forecast</span><span class="val" id="scrNFct">—</span></div>
+          </div>
+
+          <div class="scr-disclaimer" id="scrDisclaimer">
+            EXPERIMENTAL RAINFALL-ENHANCED SCREENING INDEX — UNCALIBRATED.
+            The underlying RF v3 model estimates terrain susceptibility only.
+            Rainfall is incorporated separately using an illustrative normalization and combination formula.
+            This is NOT a calibrated landslide probability, trained rainfall-aware model, or operational warning.
+          </div>
+          <div class="scr-note">
+            Model caveat: RF v3 was trained on 49 earthquake-triggered polygons from the 1999 Mw 6.6 Chamoli event —
+            one district, one event. It has not been validated for other regions, rainfall-triggered landslides, or live use.
+          </div>
+
+          <div class="scr-src" id="scrSource">—</div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ── Status bar ──────────────────────────────────────────────────── -->
+    <footer class="statusbar" aria-label="Map status">
+      <div class="sb-group">
+        <span class="sb-coords" id="sbCoords">—</span>
+        <span class="sb-sep"></span>
+        <span id="sbZoom">z—</span>
+      </div>
+      <div class="sb-group grow">
+        <span class="sb-sep"></span>
+        <span class="sb-scale" id="sbScale">1 : —</span>
+        <span class="sb-sep"></span>
+      </div>
+      <div class="sb-group sb-right">
+        <span class="dot" id="sbStatusDot"></span>
+        <span class="trunc" id="sbStatus">initialising…</span>
+        <span class="sb-sep"></span>
+        <span class="trunc" id="sbBasemap">Esri World Imagery</span>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-o9N1U8MLf4Py+Oe6K1l61r5FfPwN5v9ZlM5u6G77e8PE="
+  crossorigin=""></script>
+<script src="assets/terraguard.js"></script>
+</body>
+</html>

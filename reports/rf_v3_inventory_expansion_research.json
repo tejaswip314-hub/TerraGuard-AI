@@ -1,0 +1,155 @@
+{
+  "local_inventory": {
+    "raw_file": "data/raw/landslide_inventory/Landslide_chamoli.shp",
+    "raw_polygons": 73,
+    "raw_crs": "EPSG:32644",
+    "source": "1999 Mw 6.6 Chamoli earthquake polygon inventory (Landsat 5 / IRS-1C); authors: Shivani Joshi, Akshat Vashistha, Srikrishnan Siva Subramanian, IIT Roorkee",
+    "clipped_to_district": 49,
+    "polygons_outside_chamoli_boundary": 24,
+    "polygon_ids_outside_district": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      14,
+      19,
+      23,
+      24,
+      34,
+      38,
+      39,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71
+    ],
+    "note_outside": "The 24 excluded polygons lie inside the DEM mosaic coverage (DEM x-range 210,577-405,542 UTM 44N; excluded polygons x 318,016-361,103). They were excluded solely by the Chamoli district AOI clip, not by data quality. Re-including them would redefine the study AOI; it requires a new dataset build, new split, and user approval - it is NOT done here.",
+    "trigger_type": "earthquake (1999 Mw 6.6), NOT rainfall",
+    "attribute_availability": {
+      "Area": {
+        "non_null": 73,
+        "n_unique": 72
+      },
+      "Lithology": {
+        "non_null": 73,
+        "n_unique": 3
+      },
+      "LULC": {
+        "non_null": 73,
+        "n_unique": 2
+      },
+      "Near_to": {
+        "non_null": 46,
+        "n_unique": 13
+      },
+      "Triggrd_by": {
+        "non_null": 73,
+        "n_unique": 2
+      },
+      "Fault": {
+        "non_null": 13,
+        "n_unique": 3
+      }
+    },
+    "lithology_distribution": {
+      "Quartzite phyllite slate limestone": 62,
+      "Gneiss migmatite schist quartzite": 9,
+      "Schist gneiss phyllite amphibolite": 2
+    },
+    "trigger_distribution": {
+      "Post-seismic": 48,
+      "Co-seismic": 25
+    },
+    "LULC_distribution": {
+      "Forest": 47,
+      "Barren": 26
+    },
+    "near_to": {
+      "Stream": 14,
+      "Fault": 8,
+      "Birahi Ganga": 6,
+      "Stream, fault": 4,
+      "Pindar river": 4,
+      "Road": 2,
+      "Alaknanda river": 2,
+      "Settlement": 1,
+      "Settlement, fault": 1,
+      "Road, settlement": 1,
+      "Stream, settlement": 1,
+      "Settlement, Mandakini river": 1,
+      "Fault, Mandakini river": 1
+    },
+    "fault": {
+      "Main Central thrust": 8,
+      "Vaikrita thrust": 4,
+      "Baijnath thrust": 1
+    }
+  },
+  "pixel_dataset": {
+    "path": "data/processed/pixel_rf_dataset_elevation_terrain_complete.csv",
+    "train_samples": 3520,
+    "test_samples": 1524,
+    "train_landslide_pixels": 24,
+    "test_landslide_pixels": 25,
+    "train_landslide_polygons": 24,
+    "test_landslide_polygons": 25,
+    "background_polygon_id": -1,
+    "background_samples_train": 3496,
+    "background_samples_test": 1499
+  },
+  "nrsc_atlas_pdf": {
+    "path": "data/raw/landslide_inventory/Landslides_Atlas_of_India_Updated_25Aug2023.pdf",
+    "size_bytes": 33914691,
+    "contents": "NRSC/ISRO Landslide Atlas of India (Feb 2023): ~80,000 mapped landslides 1998-2022 across 17 states + 2 UTs; district exposure ranking; 1:25,000 LSZ (Landslide Susceptibility Zonation) maps for corridors incl. Rishikesh-Rudraprayag-Chamoli-Badrinath and Chamoli-Okhimath",
+    "chamoli_exposure_rank": "19 of 147 districts (Uttaranchal)",
+    "usable_as_ml_labels": false,
+    "reasons": [
+      "PDF scans of maps; no coordinate-level labels without digitization",
+      "not validated for ML use (extraction pending per data/metadata/landslide_inventory_nrsc_status.json)",
+      "LSZ maps are model-derived susceptibility, not observed inventories"
+    ],
+    "atlas_text_contains": "Chamoli (exposure rank 19; LSZ corridors through Chamoli)"
+  },
+  "locally_available_predictors": {
+    "elevation (m)": "used in v2/v3",
+    "slope (deg)": "used in v2/v3",
+    "aspect_sin / aspect_cos": "used in v2/v3 (recomputed from corrected aspect)",
+    "hillshade (0-255)": "used in v2/v3",
+    "plan/profile/mean curvature": "derivable locally from DEM (v3 experimental feature); computed in this phase",
+    "TWI": "derivable but requires hydrological conditioning (pit filling, flow direction, accumulation); NOT computed; unreliable without conditioning",
+    "continuous lithology/geology raster": "NOT available locally (only per-polygon categorical attributes for the 73 inventory polygons)",
+    "distance-to-fault / distance-to-road / distance-to-stream": "NOT available locally (no fault/road/stream vector layers)",
+    "LULC raster": "NOT available locally",
+    "rainfall": "IMERG monthly zips 2000-2020 in data/raw/rainfall and data/raw/precipitation; 0.1deg (~10km) monthly grids; suitable for coarse event/seasonal context, NOT pixel-level predictors without major aggregation and new engineering; not used"
+  },
+  "external_candidate_inventories_to_verify": [
+    "NASA Global Landslide Catalog (Kirschbaum et al., ~2010-2015; point-level, global; trigger labels present)",
+    "Geological Survey of India (GSI) landslide inventory databases / national landslide susceptibility mapping",
+    "Landslide4Sense (benchmark semantic-segmentation dataset for landslide detection; multispectral, global sites incl. India)",
+    "Kedarnath 2013 disaster inventories (post-flood Chamoli district)",
+    "Published 1999 Chamoli earthquake inventory (source of local shapefile) - additional associated reports may exist",
+    "NRSC/ISRO LSZ maps for the Chamoli corridors (digitization would be required; LSZ is modeled zonation, not observed labels)"
+  ],
+  "external_verification_status": "Web search was unavailable in this session (queries cancelled). All external candidates above are documented from general literature knowledge and MUST be independently verified (source, license, spatial/temporal coverage, and coordinate accuracy) before any acquisition or use.",
+  "geological_predictors_recommendation": [
+    "The raw inventory attributes show strong lithologic and structural control: 62/73 polygons on Quartzite-phyllite-slate-limestone; 8 associated with Main Central thrust, 4 Vaikrita thrust, 1 Baijnath thrust; 6 near Birahi Ganga.",
+    "Priority new predictor: continuous lithology/geology raster (GSI 1:50,000 / 1:2,50,000) and distance-to-fault - both currently missing.",
+    "Secondary: distance-to-stream / drainage density, TWI (after DEM conditioning), LULC, and slope-curvature; curvature is derivable now."
+  ],
+  "feasibility_statement": "Even with all locally derivable predictors, the positive class is 49 events (earthquake-triggered, one district). RF v3 can test better-regularized configurations, not reach operational accuracy. Any external inventory would need CRS/coordinate validation, trigger-type harmonization (co-seismic vs rainfall), and temporal alignment before use.",
+  "actions_not_taken": [
+    "No new external data downloaded or fabricated.",
+    "The 24 out-of-district polygons were NOT re-included; doing so redefines the AOI and requires user confirmation.",
+    "NRSC Atlas pages were not digitized into inventories; LSZ maps are model outputs, not observed labels.",
+    "Web search for external inventories could not be performed (queries cancelled in this session)."
+  ]
+}

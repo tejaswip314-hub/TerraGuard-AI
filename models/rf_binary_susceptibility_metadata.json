@@ -1,0 +1,44 @@
+{
+  "dataset_version": "TerraGuardAI v1.0 - Binary RF",
+  "training_date": "2026-11-10 19:58:02",
+  "n_training_samples": 2523,
+  "n_test_samples": 2521,
+  "n_features": 13,
+  "feature_cols": [
+    "slope_mean",
+    "slope_median",
+    "slope_min",
+    "slope_max",
+    "slope_std",
+    "aspect_circular_mean",
+    "aspect_valid_count",
+    "hillshade_mean",
+    "hillshade_median",
+    "hillshade_min",
+    "hillshade_max",
+    "hillshade_std",
+    "hillshade_valid_count"
+  ],
+  "train_class_distribution": {
+    "0": 2498,
+    "1": 25
+  },
+  "test_class_distribution": {
+    "0": 2497,
+    "1": 24
+  },
+  "model_params": {
+    "n_estimators": 100,
+    "random_state": 42,
+    "max_depth": null
+  },
+  "limitations": [
+    "Single-event dataset (1999 Chamoli Mw 6.6 earthquake only)",
+    "Small sample size limits generalizability",
+    "Background samples are provisional, not confirmed absolute absences",
+    "Spatial split does not resolve single-event bias",
+    "No rainfall predictors included in RF training",
+    "Model not operationally validated - exploratory only",
+    "Classification breakpoints for Ls_name are methodological assumptions"
+  ]
+}

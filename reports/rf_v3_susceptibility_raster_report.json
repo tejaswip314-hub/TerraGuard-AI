@@ -1,0 +1,34 @@
+{
+  "stats": {
+    "valid_pixels": 2515410,
+    "total_pixels": 2515410,
+    "probability": {
+      "min": 0.0,
+      "max": 0.9983962178230286,
+      "mean": 0.017587581649422646,
+      "median": 0.0,
+      "p90": 0.029390551149845123,
+      "p99": 0.4246622920036316,
+      "p_ge_0_38_count": 30179,
+      "p_ge_0_38_frac": 0.011997646506931275
+    }
+  },
+  "raster_utm": "D:\\TerraGuardAI\\data\\processed\\susceptibility_chamoli_experimental.tif",
+  "raster_4326": "D:\\TerraGuardAI\\data\\processed\\susceptibility_chamoli_experimental_4326.tif",
+  "overlay_png": "D:\\TerraGuardAI\\data\\processed\\susceptibility_chamoli_experimental_overlay.png",
+  "inventory_geojson": "D:\\TerraGuardAI\\data\\processed\\inventory_chamoli_epsg4326.geojson",
+  "aoi_utm": [
+    299779.57248754986,
+    3333032.672293771,
+    348898.8917118069,
+    3375272.2731388714
+  ],
+  "aoi_lonlat": [
+    78.92193900801365,
+    30.112131785927595,
+    79.42547559337292,
+    30.50024223091997
+  ],
+  "model": "rf_pixel_susceptibility_pipeline_v3.joblib (experimental)",
+  "generation_seconds": 9.0
+}

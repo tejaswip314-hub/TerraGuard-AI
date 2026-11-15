@@ -1,0 +1,31 @@
+{
+  "model_name": "india_rf_v2",
+  "training_date": "2026-11-12T22:38:20.962196",
+  "training_samples": 734,
+  "test_samples": 315,
+  "n_landslide_train": 34,
+  "n_landslide_test": 15,
+  "n_background_train": 700,
+  "n_background_test": 300,
+  "total_training_samples": 1049,
+  "total_landslide_samples": 49,
+  "total_background_samples": 1000,
+  "features": [
+    "lon",
+    "lat"
+  ],
+  "n_features": 2,
+  "random_state": 42,
+  "model_type": "RandomForestClassifier",
+  "class_weight": "balanced",
+  "imputer_metadata": {
+    "lon_mean": 20.679182135527693,
+    "lon_std": 8.451591684389818,
+    "lat_mean": 82.99592803269364,
+    "lat_std": 8.217885267081913,
+    "n_samples_imputed": 49,
+    "imputation_strategy": "mean"
+  },
+  "experimental": true,
+  "note": "India RF v2 trained on 1049 samples (49 Chamoli landslide positive observations from 1999 Mw 6.6 earthquake + 1000 background samples from India-wide bbox with 50m buffer exclusion). Features used: lon, lat (2 features derived from geographic coordinates). 49/1049 samples (4.7%) had NaN lon/lat imputed using mean of available coordinates.  CRITICAL LIMITATION: The model achieves high AUC due to geographic separation, not terrain-based landslide prediction. The 49 Chamoli landslides have non-overlapping coordinates with the 1000 background samples spanning India. This is geographic separation, NOT predictive validity for nationwide use.  The model should NOT be used for landslide prediction outside the Chamoli region. Terrain features (elevation, slope, aspect, hillshade) are only available for the 49 Chamoli landslide polygons from the 1999 earthquake inventory. Background samples have full geographic coverage but no terrain features. DO NOT claim calibrated probabilities or nationwide predictive validity.  Chamoli RF v3 preserved separately as the primary operational model. India RF v1 preserved for reproducibility."
+}

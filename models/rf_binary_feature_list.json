@@ -1,0 +1,18 @@
+{
+  "feature_cols": [
+    "slope_mean",
+    "slope_median",
+    "slope_min",
+    "slope_max",
+    "slope_std",
+    "aspect_circular_mean",
+    "aspect_valid_count",
+    "hillshade_mean",
+    "hillshade_median",
+    "hillshade_min",
+    "hillshade_max",
+    "hillshade_std",
+    "hillshade_valid_count"
+  ],
+  "n_features": 13
+}

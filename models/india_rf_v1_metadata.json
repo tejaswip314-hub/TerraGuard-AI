@@ -1,0 +1,51 @@
+{
+  "model_name": "india_rf_v1",
+  "training_date": "2026-11-12 21:38:11",
+  "training_samples": 5147,
+  "test_samples": 2226,
+  "n_landslide_train": 37,
+  "n_landslide_test": 36,
+  "n_background_train": 5110,
+  "n_background_test": 2190,
+  "total_training_samples": 7373,
+  "total_landslide_samples": 73,
+  "total_background_samples": 7300,
+  "features": [
+    "elevation",
+    "slope",
+    "aspect",
+    "hillshade",
+    "x",
+    "y",
+    "lon",
+    "lat",
+    "aspect_sin",
+    "aspect_cos"
+  ],
+  "feature_importances": {
+    "elevation": 0.06986055792112944,
+    "slope": 0.09897295177990567,
+    "aspect": 0.04755728133684406,
+    "hillshade": 0.0709020048251775,
+    "x": 0.18804713088496927,
+    "y": 0.0475924582506698,
+    "lon": 0.1968479792945728,
+    "lat": 0.06776517397238303,
+    "aspect_sin": 0.01734678090711024,
+    "aspect_cos": 0.19510768082723812
+  },
+  "random_state": 42,
+  "model_type": "RandomForestClassifier",
+  "experimental": true,
+  "note": "India RF v1 trained on expanded 73-pixel dataset with spatial split (median centroid x for landslides, 70/30 random for backgrounds, class_weight=balanced). Experimental model; not calibrated; Chamoli RF v3 preserved separately.",
+  "feature_definitions": {
+    "elevation": "Elevation value (meters); original dataset had nodata (-32767) replaced with valid values in expanded version",
+    "slope": "Slope in degrees",
+    "aspect": "Aspect in degrees",
+    "aspect_sin": "Sine of aspect angle",
+    "aspect_cos": "Cosine of aspect angle",
+    "hillshade": "hillshade value",
+    "class": "0 = background, 1 = landslide",
+    "train": "1 = training split, 0 = test split (per manifest: landslides by median centroid x; backgrounds 70/30 random, seed 42)"
+  }
+}

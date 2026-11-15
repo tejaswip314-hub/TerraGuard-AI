@@ -1,0 +1,8 @@
+{
+  "lon_mean": 20.679182135527693,
+  "lon_std": 8.451591684389818,
+  "lat_mean": 82.99592803269364,
+  "lat_std": 8.217885267081913,
+  "n_samples_imputed": 49,
+  "imputation_strategy": "mean"
+}

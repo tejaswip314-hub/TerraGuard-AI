@@ -1,0 +1,27 @@
+{
+  "feature_cols": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "n_features": 5,
+  "feature_names": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "dataset": "pixel_rf_dataset_corrected",
+  "split_scheme": "median-lon: 24 train polys (west), 25 test polys (east)",
+  "train_samples": 3520,
+  "test_samples": 1524,
+  "landslide_train": 24,
+  "landslide_test": 25,
+  "background_train": 3496,
+  "background_test": 1499,
+  "class_imbalance_train": "3496:24",
+  "class_imbalance_test": "1499:25"
+}

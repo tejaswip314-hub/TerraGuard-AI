@@ -1,0 +1,73 @@
+{
+  "note": "Corrected replacement for rf_pixel_evaluation_metrics_v2.json. Metrics at the recorded threshold 0.27 are computed from saved probabilities, not pipeline.predict() defaults. Original file preserved unmodified.",
+  "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline_v2.joblib",
+  "dataset_path": "D:\\TerraGuardAI\\data\\processed\\pixel_rf_dataset_elevation_terrain_complete.csv",
+  "features": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "train_samples": 3520,
+  "test_samples": 1524,
+  "landslide_test": 25,
+  "background_test": 1499,
+  "recorded_threshold": 0.27,
+  "metrics_at_recorded_threshold": {
+    "threshold": 0.27,
+    "roc_auc": 0.7186390927284856,
+    "pr_auc": 0.06373408137878792,
+    "precision": 0.16666666666666666,
+    "recall": 0.04,
+    "f1": 0.06451612903225806,
+    "confusion_matrix": {
+      "TN": 1494,
+      "FP": 5,
+      "FN": 24,
+      "TP": 1
+    }
+  },
+  "metrics_at_default_0_5": {
+    "threshold": 0.5,
+    "roc_auc": 0.7186390927284856,
+    "pr_auc": 0.06373408137878792,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "confusion_matrix": {
+      "TN": 1499,
+      "FP": 0,
+      "FN": 25,
+      "TP": 0
+    }
+  },
+  "original_v2_final_test_metrics_as_saved": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 0.7186390927284856,
+    "pr_auc": 0.06373408137878792,
+    "threshold": 0.27,
+    "confusion_matrix": {
+      "TN": 1499,
+      "FP": 0,
+      "FN": 25,
+      "TP": 0
+    },
+    "best_f1_on_validation": 1.0
+  },
+  "original_v1_test_metrics": {
+    "precision": 0.02021018593371059,
+    "recall": 1.0,
+    "f1": 0.039619651347068144,
+    "roc_auc": 0.5957304869913276,
+    "pr_auc": 0.02021018593371059,
+    "confusion_matrix": {
+      "TN": 287,
+      "FP": 1212,
+      "FN": 0,
+      "TP": 25
+    }
+  }
+}

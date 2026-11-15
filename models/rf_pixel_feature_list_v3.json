@@ -1,0 +1,7 @@
+[
+  "elevation",
+  "slope",
+  "aspect_sin",
+  "aspect_cos",
+  "hillshade"
+]

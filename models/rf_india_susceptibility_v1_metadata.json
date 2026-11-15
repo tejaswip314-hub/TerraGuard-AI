@@ -1,0 +1,50 @@
+{
+  "model": "rf_india_susceptibility_v1",
+  "model_file": "models/rf_india_susceptibility_v1.joblib",
+  "training_date": "2026-11-14 23:51:00",
+  "features": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "training_samples": 15477,
+  "background_samples": 15434,
+  "total_samples": 30911,
+  "unique_gsi_points_seen": 28362,
+  "landslide_cells_covered": 15499,
+  "protocol": "GroupKFold(n_splits=5) by 1-degree tile; OOF metrics; threshold from argmax OOF F1",
+  "metrics_oof": {
+    "roc_auc": 0.928532032998524,
+    "pr_auc": 0.899406277164169,
+    "frozen_threshold": 0.402,
+    "precision": 0.8370733987844787,
+    "recall": 0.9255023583381793,
+    "f1": 0.8790696247199975,
+    "confusion_matrix": {
+      "TN": 12646,
+      "FP": 2788,
+      "FN": 1153,
+      "TP": 14324
+    }
+  },
+  "data_sources": [
+    "GSI national landslide inventory (external, 2016-era composite) \u2014 30,842 records, 28,362 unique points, all in India",
+    "SRTM GL1 (NASA/USGS, 1 arc-second) \u2014 353 audited tiles (EPSG:4326); N09E077 corrupt and excluded",
+    "National grid: EPSG:4326, 0.01 deg (~1 km), bbox lon 68-98, lat 6-37"
+  ],
+  "limitations": [
+    "Experimental, uncalibrated susceptibility screening \u2014 NOT a calibrated probability",
+    "Resolution ~1 km; not valid at sub-km scales",
+    "Labels: GSI inventory mixes earthquake-, rainfall-, and other-triggered events; trigger-agnostic point model",
+    "Background sampled randomly from covered cells; landslide cells excluded with 1-cell buffer",
+    "No geology/landcover/NDVI/proximity features (not available nationally in verified form)",
+    "Coverage: ~38% of the national bbox; predictions outside covered cells are unavailable, never fabricated",
+    "GroupKFold by 1-degree tile \u2014 spatial leakage minimized but not eliminated"
+  ],
+  "not_applicable": [
+    "Chamoli pilot RF v3 remains a separate, finer-scale (~30 m) experimental model",
+    "Rainfall is NOT a feature; Open-Meteo rainfall is a separate screening layer"
+  ]
+}

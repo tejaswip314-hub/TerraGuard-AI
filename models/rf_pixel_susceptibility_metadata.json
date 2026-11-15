@@ -1,0 +1,63 @@
+{
+  "dataset_name": "pixel-level RF susceptibility model",
+  "description": "Random Forest classifier trained on genuine raster pixel values from terrain derivatives",
+  "dataset_path": "D:\\TerraGuardAI\\data\\processed\\pixel_rf_dataset_corrected.csv",
+  "total_samples": 5044,
+  "landslide_pixels": 49,
+  "background_pixels": 4995,
+  "train_test_split": {
+    "train": {
+      "n_samples": 3520,
+      "n_landslide": 24,
+      "n_background": 3496
+    },
+    "test": {
+      "n_samples": 1524,
+      "n_landslide": 25,
+      "n_background": 1499
+    }
+  },
+  "predictors": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "split_scheme": "median-lon geographic split of polygon centroids: 24 train (west), 25 test (east)",
+  "train_test_background_split": "70/30 random for background",
+  "class_distribution": {
+    "train": {
+      "landslide": 24,
+      "background": 3496
+    },
+    "test": {
+      "landslide": 25,
+      "background": 1499
+    }
+  },
+  "model_params": {
+    "n_estimators": 100,
+    "random_state": 42,
+    "class_weight": "balanced",
+    "max_depth": 15,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "n_jobs": -1
+  },
+  "quality_metrics": {
+    "precision": 0.02021018593371059,
+    "recall": 1.0,
+    "f1": 0.039619651347068144,
+    "roc_auc": 0.5957304869913276,
+    "pr_auc": 0.02021018593371059
+  },
+  "limitations": {
+    "single_event": "1999 Chamoli earthquake only (49 landslide polygons)",
+    "provisional_background": "Background samples are provisional, not confirmed absolute absences",
+    "limited_generalization": "Model trained on single earthquake event; cannot generalize beyond Chamoli",
+    "spatial_autocorrelation": "Pixels within same polygon are not independent; geographic split reduces but does not eliminate autocorrelation",
+    "class_imbalance": "~100:1 background:landslide ratio in both train and test",
+    "one_event_training": "Only 49 independent landslide polygons available for training"
+  }
+}

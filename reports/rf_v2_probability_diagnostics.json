@@ -1,0 +1,470 @@
+{
+  "objective": "Investigate why RF v2 achieved ROC-AUC=0.7186 / PR-AUC=0.0637 and how it behaved at the validation-selected threshold 0.27 on the held-out test set.",
+  "threshold": 0.27,
+  "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline_v2.joblib",
+  "dataset_path": "D:\\TerraGuardAI\\data\\processed\\pixel_rf_dataset_elevation_terrain_complete.csv",
+  "features": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "test_metrics_reproduced": {
+    "precision": 0.16666666666666666,
+    "recall": 0.04,
+    "f1": 0.06451612903225806,
+    "roc_auc": 0.7186390927284856,
+    "pr_auc": 0.06373408137878792,
+    "threshold": 0.27,
+    "confusion_matrix": {
+      "TN": 1494,
+      "FP": 5,
+      "FN": 24,
+      "TP": 1
+    },
+    "n_test": 1524,
+    "n_landslide_test": 25,
+    "n_background_test": 1499
+  },
+  "probability_distributions": {
+    "validation_positive": {
+      "group": "validation_positive",
+      "n": 5,
+      "n_positive": 5,
+      "n_background": 0,
+      "min": 0.2995238095238095,
+      "max": 0.5711785714285713,
+      "mean": 0.4303571428571429,
+      "median": 0.465892857142857,
+      "std": 0.09870155058779656,
+      "q25": 0.3388095238095239,
+      "q75": 0.47638095238095235,
+      "count_ge_threshold": 5,
+      "positive_subset": {
+        "n": 5,
+        "min": 0.2995238095238095,
+        "max": 0.5711785714285713,
+        "mean": 0.4303571428571429,
+        "median": 0.465892857142857,
+        "count_ge_threshold": 5
+      },
+      "background_subset": {
+        "n": 0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "count_ge_threshold": 0
+      }
+    },
+    "validation_background": {
+      "group": "validation_background",
+      "n": 699,
+      "n_positive": 0,
+      "n_background": 699,
+      "min": 0.0,
+      "max": 0.26189285714285715,
+      "mean": 0.0048581022776301745,
+      "median": 0.0,
+      "std": 0.019842830371074902,
+      "q25": 0.0,
+      "q75": 0.0,
+      "count_ge_threshold": 0,
+      "positive_subset": {
+        "n": 0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "count_ge_threshold": 0
+      },
+      "background_subset": {
+        "n": 699,
+        "min": 0.0,
+        "max": 0.26189285714285715,
+        "mean": 0.0048581022776301745,
+        "median": 0.0,
+        "count_ge_threshold": 0
+      }
+    },
+    "test_positive": {
+      "group": "test_positive",
+      "n": 25,
+      "n_positive": 25,
+      "n_background": 0,
+      "min": 0.0,
+      "max": 0.4534841269841269,
+      "mean": 0.035415555555555554,
+      "median": 0.008666666666666666,
+      "std": 0.08775577246143036,
+      "q25": 0.0,
+      "q75": 0.03369047619047619,
+      "count_ge_threshold": 1,
+      "positive_subset": {
+        "n": 25,
+        "min": 0.0,
+        "max": 0.4534841269841269,
+        "mean": 0.035415555555555554,
+        "median": 0.008666666666666666,
+        "count_ge_threshold": 1
+      },
+      "background_subset": {
+        "n": 0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "count_ge_threshold": 0
+      }
+    },
+    "test_background": {
+      "group": "test_background",
+      "n": 1499,
+      "n_positive": 0,
+      "n_background": 1499,
+      "min": 0.0,
+      "max": 0.4921785714285713,
+      "mean": 0.006861013162213963,
+      "median": 0.0,
+      "std": 0.031122266344541072,
+      "q25": 0.0,
+      "q75": 0.0,
+      "count_ge_threshold": 5,
+      "positive_subset": {
+        "n": 0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "count_ge_threshold": 0
+      },
+      "background_subset": {
+        "n": 1499,
+        "min": 0.0,
+        "max": 0.4921785714285713,
+        "mean": 0.006861013162213963,
+        "median": 0.0,
+        "count_ge_threshold": 5
+      }
+    }
+  },
+  "comparisons": {
+    "test_positive_mean": 0.035415555555555554,
+    "validation_positive_mean": 0.4303571428571429,
+    "mean_difference": -0.39494158730158735,
+    "test_positive_median": 0.008666666666666666,
+    "validation_positive_median": 0.465892857142857,
+    "test_background_mean": 0.006861013162213963,
+    "validation_background_mean": 0.0048581022776301745,
+    "test_background_median": 0.0,
+    "validation_background_median": 0.0,
+    "test_positive_max": 0.4534841269841269,
+    "test_background_max": 0.4921785714285713,
+    "test_positive_above_background_max_count": 0,
+    "val_positive_mean": 0.4303571428571429,
+    "val_background_mean": 0.0048581022776301745,
+    "test_positive_prevalence": 0.016404199475065617,
+    "validation_positive_prevalence": 0.007102272727272727
+  },
+  "feature_importance": {
+    "elevation": {
+      "importance": 0.1789860541112895,
+      "importance_pct": 17.89860541112895,
+      "test_positive_mean": 1552.12,
+      "test_background_mean": 1696.4636424282855,
+      "test_positive_min": 870.0,
+      "test_positive_max": 2936.0
+    },
+    "slope": {
+      "importance": 0.23719961780224585,
+      "importance_pct": 23.719961780224587,
+      "test_positive_mean": 40.236194784,
+      "test_background_mean": 29.05777935663776,
+      "test_positive_min": 7.9834466,
+      "test_positive_max": 62.219723
+    },
+    "aspect_sin": {
+      "importance": 0.18786901599487338,
+      "importance_pct": 18.786901599487337,
+      "test_positive_mean": 0.15314427095218314,
+      "test_background_mean": 0.023066380930431167,
+      "test_positive_min": -0.999554771316486,
+      "test_positive_max": 0.9953500138102606
+    },
+    "aspect_cos": {
+      "importance": 0.2055063431503885,
+      "importance_pct": 20.55063431503885,
+      "test_positive_mean": -0.5998973659275736,
+      "test_background_mean": -0.0362209436541785,
+      "test_positive_min": -0.9987523347170355,
+      "test_positive_max": 0.31622778550647995
+    },
+    "hillshade": {
+      "importance": 0.19043896894120269,
+      "importance_pct": 19.04389689412027,
+      "test_positive_mean": 164.32,
+      "test_background_mean": 203.09606404269513,
+      "test_positive_min": 124.0,
+      "test_positive_max": 233.0
+    }
+  },
+  "test_threshold_results_descriptive": [
+    {
+      "threshold": 0.01,
+      "tn": 1316,
+      "fp": 183,
+      "fn": 13,
+      "tp": 12,
+      "precision": 0.06153846153846154,
+      "recall": 0.48,
+      "f1": 0.10909090909090909
+    },
+    {
+      "threshold": 0.05,
+      "tn": 1452,
+      "fp": 47,
+      "fn": 22,
+      "tp": 3,
+      "precision": 0.06,
+      "recall": 0.12,
+      "f1": 0.08
+    },
+    {
+      "threshold": 0.1,
+      "tn": 1477,
+      "fp": 22,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.043478260869565216,
+      "recall": 0.04,
+      "f1": 0.041666666666666664
+    },
+    {
+      "threshold": 0.15,
+      "tn": 1485,
+      "fp": 14,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.06666666666666667,
+      "recall": 0.04,
+      "f1": 0.05
+    },
+    {
+      "threshold": 0.2,
+      "tn": 1488,
+      "fp": 11,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.08333333333333333,
+      "recall": 0.04,
+      "f1": 0.05405405405405406
+    },
+    {
+      "threshold": 0.25,
+      "tn": 1494,
+      "fp": 5,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.16666666666666666,
+      "recall": 0.04,
+      "f1": 0.06451612903225806
+    },
+    {
+      "threshold": 0.27,
+      "tn": 1494,
+      "fp": 5,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.16666666666666666,
+      "recall": 0.04,
+      "f1": 0.06451612903225806
+    },
+    {
+      "threshold": 0.3,
+      "tn": 1495,
+      "fp": 4,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.2,
+      "recall": 0.04,
+      "f1": 0.06666666666666667
+    },
+    {
+      "threshold": 0.4,
+      "tn": 1497,
+      "fp": 2,
+      "fn": 24,
+      "tp": 1,
+      "precision": 0.3333333333333333,
+      "recall": 0.04,
+      "f1": 0.07142857142857142
+    },
+    {
+      "threshold": 0.5,
+      "tn": 1499,
+      "fp": 0,
+      "fn": 25,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "threshold": 0.6,
+      "tn": 1499,
+      "fp": 0,
+      "fn": 25,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "threshold": 0.7,
+      "tn": 1499,
+      "fp": 0,
+      "fn": 25,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "threshold": 0.8,
+      "tn": 1499,
+      "fp": 0,
+      "fn": 25,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "threshold": 0.9,
+      "tn": 1499,
+      "fp": 0,
+      "fn": 25,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  ],
+  "validation_threshold_sweep": {
+    "best_f1": 1.0,
+    "best_threshold": 0.27,
+    "metrics_at_threshold_0_27": {
+      "threshold": 0.27,
+      "tn": 699,
+      "fp": 0,
+      "fn": 0,
+      "tp": 5,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "threshold_stability": {
+    "method": "training set only; repeated stratified 5-fold CV (3 seeds); spatial block 5-fold CV; v2 RF configuration",
+    "n_folds": 20,
+    "threshold_best_f1_on_val": {
+      "count": 18,
+      "mean": 0.13,
+      "std": 0.07055336829505575,
+      "min": 0.01,
+      "median": 0.13,
+      "max": 0.31
+    },
+    "stratified": {
+      "threshold_best_f1_on_val_mean": 0.14066666666666666,
+      "threshold_best_f1_on_val_min": 0.05,
+      "threshold_best_f1_on_val_max": 0.31
+    },
+    "spatial_block": {
+      "threshold_best_f1_on_val_mean": 0.07666666666666667,
+      "threshold_best_f1_on_val_min": 0.01,
+      "threshold_best_f1_on_val_max": 0.17
+    },
+    "best_f1_on_val": {
+      "count": 18,
+      "mean": 0.2928135841320426,
+      "std": 0.14112398437466736,
+      "min": 0.08,
+      "median": 0.2967032967032967,
+      "max": 0.6153846153846154
+    },
+    "pr_auc_on_val": {
+      "count": 20,
+      "mean": 0.1602354151878772,
+      "std": 0.12969574540717238,
+      "min": 0.0,
+      "median": 0.11652119271836471,
+      "max": 0.45975378787878785
+    },
+    "roc_auc_on_val": {
+      "count": 20,
+      "mean": NaN,
+      "std": NaN,
+      "min": NaN,
+      "median": NaN,
+      "max": NaN
+    }
+  },
+  "metric_reproduction_caveat": {
+    "previously_saved_v2_metrics_bug": "final_test_metrics in rf_pixel_evaluation_metrics_v2.json and rf_pixel_training_report_v2.txt recorded threshold 0.27 but computed the confusion matrix at the pipeline default (T=0.5).",
+    "correct_out_of_sample_metrics_at_recorded_threshold_0_27": {
+      "threshold": 0.27,
+      "roc_auc": 0.7186390927284856,
+      "pr_auc": 0.06373408137878792,
+      "precision": 0.16666666666666666,
+      "recall": 0.04,
+      "f1": 0.06451612903225806,
+      "confusion_matrix": {
+        "TN": 1494,
+        "FP": 5,
+        "FN": 24,
+        "TP": 1
+      }
+    },
+    "correct_out_of_sample_metrics_at_default_0_5": {
+      "threshold": 0.5,
+      "roc_auc": 0.7186390927284856,
+      "pr_auc": 0.06373408137878792,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "confusion_matrix": {
+        "TN": 1499,
+        "FP": 0,
+        "FN": 25,
+        "TP": 0
+      }
+    },
+    "corrected_artifacts": [
+      "D:\\TerraGuardAI\\reports\\rf_pixel_evaluation_metrics_v2_corrected.json",
+      "D:\\TerraGuardAI\\reports\\rf_pixel_training_report_v2_corrected.txt"
+    ]
+  },
+  "findings": {
+    "test_scores_vs_validation": "systematically lower",
+    "test_positive_mean_vs_validation_positive_mean": -0.3949,
+    "test_positives_rank_above_background_max": 0,
+    "test_positive_max": 0.4534841269841269,
+    "test_background_max": 0.4921785714285713,
+    "geographic_shift_present": true,
+    "threshold_selection_unstable": true,
+    "fold_threshold_range": [
+      0.01,
+      0.31
+    ],
+    "in_sample_validation_warning": "Threshold 0.27 was tuned on a 704-sample validation split that was later included in the training data of the final retrained model; validation F1=1.0 is optimistic. Use out-of-fold validation."
+  },
+  "recommendations": [
+    "Do not deploy RF v2 and do not generate a susceptibility map from it.",
+    "Do not claim RF v2 operationally outperforms RF v1 (corrected recall: 0.04 @ T=0.27, 0.0 @ T=0.5).",
+    "Fix evaluation code: use probabilities+explicit threshold; never tune on test; use spatial block CV for threshold tuning.",
+    "Obtain more positive samples or aggregate to polygon level; add geology/hydrology predictors.",
+    "Verify class weighting and calibration before any future comparison."
+  ]
+}

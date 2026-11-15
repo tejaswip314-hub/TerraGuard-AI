@@ -1,0 +1,85 @@
+{
+  "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline_v2.joblib",
+  "feature_list_path": "D:\\TerraGuardAI\\models\\rf_pixel_feature_list_v2.json",
+  "metadata_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_metadata_v2.json",
+  "dataset_path": "D:\\TerraGuardAI\\data\\processed\\pixel_rf_dataset_elevation_terrain_complete.csv",
+  "total_samples": 5044,
+  "landslide_pixels": 49,
+  "background_pixels": 4995,
+  "train_samples": 3520,
+  "test_samples": 1524,
+  "landslide_train": 24,
+  "landslide_test": 25,
+  "background_train": 3496,
+  "background_test": 1499,
+  "predictors": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "split_scheme": "median-lon geographic split of polygon centroids: 24 train (west), 25 test (east)",
+  "train_test_background_split": "70/30 random for background",
+  "final_model_selected": "rf_no_class_weight",
+  "final_model_params": {
+    "n_estimators": 100,
+    "random_state": 42,
+    "class_weight": null,
+    "max_depth": 15,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "n_jobs": -1
+  },
+  "final_threshold": 0.27,
+  "final_val_f1": 1.0,
+  "final_validation_metrics": {
+    "precision": 1.0,
+    "recall": 0.2,
+    "f1": 0.3333333333333333,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "threshold": 0.27
+  },
+  "final_test_metrics": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 0.7186390927284856,
+    "pr_auc": 0.06373408137878792,
+    "threshold": 0.27,
+    "confusion_matrix": {
+      "TN": 1499,
+      "FP": 0,
+      "FN": 25,
+      "TP": 0
+    },
+    "best_f1_on_validation": 1.0
+  },
+  "baseline_comparison": {
+    "original": {
+      "precision": 0.02021018593371059,
+      "recall": 1.0,
+      "f1": 0.039619651347068144,
+      "roc_auc": 0.5957304869913276,
+      "pr_auc": 0.02021018593371059,
+      "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline.joblib"
+    },
+    "new": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.7186390927284856,
+      "pr_auc": 0.06373408137878792,
+      "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline_v2.joblib"
+    }
+  },
+  "limitations": {
+    "single_event": "1999 Chamoli earthquake only (49 landslide polygons)",
+    "provisional_background": "Background samples are provisional, not confirmed absolute absences",
+    "limited_generalization": "Model trained on single earthquake event; cannot generalize beyond Chamoli",
+    "spatial_autocorrelation": "Pixels within same polygon are not independent; geographic split reduces but does not eliminate autocorrelation",
+    "class_imbalance": "~100:1 background:landslide ratio in both train and test",
+    "one_event_training": "Only 49 independent landslide polygons available for training"
+  }
+}

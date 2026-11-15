@@ -1,0 +1,122 @@
+{
+  "model": "rf_balanced (class_weight=balanced, n_estimators=100, max_depth=15, min_samples_split=5, min_samples_leaf=2, random_state=42)",
+  "features": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "protocol": "spatial 5-band CV for selection; threshold from pooled training OOF F1; single independent test evaluation",
+  "training_samples": 3520,
+  "test_samples": 1524,
+  "train_positives": 24,
+  "test_positives": 25,
+  "frozen_threshold": 0.38,
+  "pooled_oof_f1": 0.18421052631578946,
+  "metrics_at_frozen_threshold": {
+    "name": "frozen_threshold",
+    "threshold": 0.38,
+    "precision": 0.1111111111111111,
+    "recall": 0.08,
+    "f1": 0.09302325581395349,
+    "roc_auc": 0.7003602401601067,
+    "pr_auc": 0.09084379997926254,
+    "confusion_matrix": {
+      "TN": 1483,
+      "FP": 16,
+      "FN": 23,
+      "TP": 2
+    }
+  },
+  "metrics_at_default_0_5": {
+    "name": "default_0_5",
+    "threshold": 0.5,
+    "precision": 0.09090909090909091,
+    "recall": 0.04,
+    "f1": 0.05555555555555555,
+    "roc_auc": 0.7003602401601067,
+    "pr_auc": 0.09084379997926254,
+    "confusion_matrix": {
+      "TN": 1489,
+      "FP": 10,
+      "FN": 24,
+      "TP": 1
+    }
+  },
+  "bootstrap_cis": {
+    "roc_auc": {
+      "mean": 0.7019081624325113,
+      "ci95_lo": 0.5957298042301987,
+      "ci95_hi": 0.8078444271407608,
+      "n_success": 1000
+    },
+    "pr_auc": {
+      "mean": 0.0973387504856323,
+      "ci95_lo": 0.02385759009511418,
+      "ci95_hi": 0.204030351070539,
+      "n_success": 1000
+    },
+    "precision_at_frozen_threshold": {
+      "mean": 0.11266112916449612,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.2857142857142857,
+      "n_success": 1000
+    },
+    "recall_at_frozen_threshold": {
+      "mean": 0.0818168782282627,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.20833333333333334,
+      "n_success": 1000
+    },
+    "n_bootstrap": 1000,
+    "failed_replicates_no_positive": 0,
+    "seed": 123
+  },
+  "feature_importance": [
+    {
+      "feature": "slope",
+      "importance": 0.34376699338784716
+    },
+    {
+      "feature": "aspect_cos",
+      "importance": 0.25497422271074094
+    },
+    {
+      "feature": "elevation",
+      "importance": 0.15761794653994154
+    },
+    {
+      "feature": "hillshade",
+      "importance": 0.13621933964973187
+    },
+    {
+      "feature": "aspect_sin",
+      "importance": 0.10742149771173842
+    }
+  ],
+  "model_path": "D:\\TerraGuardAI\\models\\rf_pixel_susceptibility_pipeline_v3.joblib",
+  "objective": "Pixel-level landslide occurrence susceptibility using earthquake-triggered (1999 Chamoli Mw 6.6) polygon inventory",
+  "trigger_type": "earthquake (co-seismic/post-seismic) - NOT a rainfall-triggered susceptibility model",
+  "acceptance_warning": "Experimental research artifact. Neither RF v1, v2, nor v3 is suitable for operational deployment or susceptibility mapping. Trained and evaluated under a 49-event, single-earthquake, single-district inventory.",
+  "test_set_policy": "Touched exactly once, after model and threshold were frozen on training data.",
+  "original_models_preserved": [
+    "models/rf_pixel_susceptibility_pipeline.joblib (v1)",
+    "models/rf_pixel_susceptibility_pipeline_v2.joblib (v2, superseded)"
+  ],
+  "comparison_v1": {
+    "precision": 0.0202,
+    "recall": 1.0,
+    "f1": 0.0396,
+    "roc_auc": 0.5957,
+    "pr_auc": 0.0202
+  },
+  "comparison_v2_corrected": {
+    "threshold": 0.27,
+    "precision": 0.1667,
+    "recall": 0.04,
+    "f1": 0.0645,
+    "roc_auc": 0.7186,
+    "pr_auc": 0.0637
+  }
+}
