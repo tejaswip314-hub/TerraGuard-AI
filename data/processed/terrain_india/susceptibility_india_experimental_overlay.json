@@ -1,0 +1,44 @@
+{
+  "image": "/susceptibility/india_overlay.png",
+  "bounds": [
+    [
+      6.0,
+      68.0
+    ],
+    [
+      37.0,
+      98.0
+    ]
+  ],
+  "crs": "EPSG:4326",
+  "resolution_deg": 0.01,
+  "mode": "continuous green(low)\u2192yellow\u2192orange\u2192red(high); transparent where outside SRTM coverage",
+  "model": "RF v1-national (rf_india_susceptibility_v1.joblib), EXPERIMENTAL",
+  "threshold": 0.402,
+  "features": [
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "hillshade"
+  ],
+  "aoi": "Regions covered by 353 audited SRTM GL1 tiles (~1 km grid)",
+  "nodata": "Cells without verified DEM coverage are transparent; NO predictions fabricated outside coverage",
+  "disclaimer": [
+    "EXPERIMENTAL nationwide susceptibility screening. NOT an operational landslide forecast.",
+    "Trained on GSI national landslide inventory (trigger-agnostic points).",
+    "No geology/landcover/hydrology features nationally; terrain-only model.",
+    "Do not use for emergency decision-making or public safety signage.",
+    "Rainfall is NOT a predictor; rainfall monitoring is a separate Open-Meteo layer."
+  ],
+  "probability_stats": {
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.18866094946861267,
+    "median": 0.02929166704416275,
+    "p90": 0.7542619109153748,
+    "p99": 0.972777783870697,
+    "p_ge_frozen_threshold": 0.19262337806554253,
+    "n_cells": 3530044
+  }
+}
