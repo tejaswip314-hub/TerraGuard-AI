@@ -919,6 +919,9 @@
     $('scrError').hidden = true;
     $('scrBody').hidden = true;
 
+    /* a fresh request must never inherit stale "0.0 mm" or OBSERVED badges */
+    clearRainfall();
+
     try {
       const d = await getJSON('/screening?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5) + '&model=' + state.model, 30000);
       if (token !== state.screeningToken) return;
@@ -931,7 +934,57 @@
       $('scrError').hidden = false;
       $('scrError').textContent = 'Screening unavailable: ' + e.message + ' — no rainfall is fabricated or zero-filled.';
       setStatus('Screening request failed', 'err');
+      clearRainfall();   /* re-apply neutral/unavailable state */
     }
+  }
+
+  /* ── Rainfall state lifecycle ────────────────────────────────────────────
+     A fetch that fails / times out must never leave stale 0.0 mm or an
+     OBSERVED badge in place. clearRainfall() wipes every observed/forecast
+     cell back to '—' and swaps the badge for UNAVAILABLE so the panel never
+     implies valid observations. */
+  function clearRainfallBadges() {
+    const obs = $('scrObsBadge');
+    const fct = $('scrFctBadge');
+    if (obs) { obs.textContent = 'UNAVAILABLE'; obs.className = 'tag tag-muted'; }
+    if (fct) { fct.textContent = 'UNAVAILABLE'; fct.className = 'tag tag-muted'; }
+  }
+
+  function clearRainfall() {
+    /* wipe every observed/forecast value back to neutral so a failed request
+       can never leave stale "0.0 mm" or an OBSERVED badge claiming live data */
+
+    const ROWS = [
+      ['scrObs1h'], ['scrObs3h'], ['scrObs24h'], ['scrObs72h'], ['scrObs7d'],
+    ];
+    ROWS.forEach(([id]) => scrSet(id, '—', 'na'));
+
+    const FCT = [
+      ['scrFct1h'], ['scrFct3h'], ['scrFct24h'],
+    ];
+    FCT.forEach(([id]) => scrSet(id, '—', 'na'));
+
+    scrSet('scrNRain', 'unavailable', 'na');
+    scrSet('scrNFct', 'unavailable', 'na');
+    $('scrNRainBar').style.width = '0%';
+    $('scrNRainBar').style.background = scrColor(null);
+    $('scrRainNote').textContent = 'Rainfall unavailable — request did not complete successfully.';
+
+    $('scrCombined').textContent = '—';
+    $('scrCombinedBar').style.width = '0%';
+    $('scrFormula').textContent = 'Screening index unavailable — rainfall signal missing.';
+
+    clearRainfallBadges();
+
+    /* invalidate cached state so the next render is honest */
+    state.lastScreening = null;
+  }
+
+  function markRainfallAvailable() {
+    const obs = $('scrObsBadge');
+    const fct = $('scrFctBadge');
+    if (obs) { obs.textContent = 'OBSERVED'; obs.className = 'tag tag-obs'; }
+    if (fct) { fct.textContent = 'FORECAST'; fct.className = 'tag tag-fct'; }
   }
 
   function renderScreening(d) {
@@ -964,6 +1017,22 @@
       scrSet(pair[1], out.text, out.cls);
       if (w && w.reference_mm != null) $('scrObs' + pair[0] + 'R').textContent = w.reference_mm;
     });
+
+    /* observed rainfall badges — OBSERVED/FORECAST only when data is present */
+    const anyObserved = obs.status === 'ok' || obs.status === 'partial'
+      || (obs.windows && Object.values(obs.windows).some(w => w.complete === true));
+    const anyForecast = fct.status === 'ok' || fct.status === 'partial'
+      || (fct.windows && Object.values(fct.windows).some(w => w.complete === true));
+    if (anyObserved) {
+      const b = $('scrObsBadge'); if (b) { b.textContent = 'OBSERVED'; b.className = 'tag tag-obs'; }
+    } else {
+      const b = $('scrObsBadge'); if (b) { b.textContent = 'UNAVAILABLE'; b.className = 'tag tag-muted'; }
+    }
+    if (anyForecast) {
+      const b = $('scrFctBadge'); if (b) { b.textContent = 'FORECAST'; b.className = 'tag tag-fct'; }
+    } else {
+      const b = $('scrFctBadge'); if (b) { b.textContent = 'UNAVAILABLE'; b.className = 'tag tag-muted'; }
+    }
 
     /* indicator */
     const nr = num(obs.normalized_indicator);

@@ -29,10 +29,10 @@ log = logging.getLogger("terraguard.om")
 OPEN_METEO_BASE = "https://api.open-meteo.com/v1/forecast"
 
 CACHE_TTL_S = 12 * 60          # 12 minutes — within 10–15 min target
-REQUEST_TIMEOUT_S = 15
+REQUEST_TIMEOUT_S = 8          # capped so the whole retry chain fits inside the frontend's 30 s budget
 MAX_ATTEMPTS = 3               # total upstream attempts (initial + 2 retries)
-BASE_BACKOFF_S = 1.0           # 1s, 2s, 4s (clamped by Retry-After when present)
-MAX_BACKOFF_S = 8.0            # cap any single sleep
+BASE_BACKOFF_S = 0.5           # 0.5s, 1s, 2s (clamped by Retry-After when present)
+MAX_BACKOFF_S = 3.0            # cap any single sleep
 
 # One unified parameter set — serves both /weather (full display set) and
 # /screening (precipitation windows). past_days=7 + forecast_days=7.
