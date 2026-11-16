@@ -12,6 +12,7 @@ import socketserver
 import json
 import urllib.parse
 import urllib.request
+import math
 from pathlib import Path
 
 # ── MIME types ──────────────────────────────────────────────────────────────
@@ -29,6 +30,31 @@ FRONTEND_DIR = PROJECT_ROOT / "public"     # Static files root (Render deploy pa
 _API_DIR = str(Path(__file__).resolve().parent)
 if _API_DIR not in sys.path:
     sys.path.insert(0, _API_DIR)   # allows 'import screening_utils'
+
+# ── Coordinate parsing (shared by RF and screening endpoints) ────────────────
+def parse_coords(params):
+    """Parse point coordinates from query parameters.
+
+    Supports both naming conventions — lat/lon AND latitude/longitude — with
+    lat/lon taking precedence. Never silently substitutes defaults.
+    Returns (lat, lon, error_message_or_None).
+    """
+    lat_raw = params.get("lat", params.get("latitude", [None]))[0]
+    lon_raw = params.get("lon", params.get("longitude", [None]))[0]
+    if lat_raw is None or lon_raw is None:
+        return None, None, "Missing required coordinates — provide both (lat, lon) or (latitude, longitude)."
+    try:
+        lat = float(lat_raw)
+        lon = float(lon_raw)
+    except (ValueError, TypeError):
+        return None, None, f"Coordinate values are not numbers: lat={lat_raw!r}, lon={lon_raw!r}"
+    if not math.isfinite(lat) or not math.isfinite(lon):
+        return None, None, f"Coordinate values are not finite: lat={lat!r}, lon={lon!r}"
+    if not -90.0 <= lat <= 90.0:
+        return None, None, f"Latitude {lat} is out of range (-90 to 90)."
+    if not -180.0 <= lon <= 180.0:
+        return None, None, f"Longitude {lon} is out of range (-180 to 180)."
+    return lat, lon, None
 
 # ── Helper functions ──────────────────────────────────────────────────────
 def send_json(handler, data):
@@ -88,7 +114,8 @@ def rf_susceptibility_point(lat, lon):
             "susceptibility_probability": None,
             "frozen_threshold": FROZEN_THRESHOLD,
             "model": RF_MODEL_NAME,
-        "model_kind": "chamoli",
+            "model_kind": "chamoli",
+            "message": "Point is outside the Chamoli training AOI (1999 Mw 6.6 event).",
             "reason": "Point is outside the Chamoli training AOI (1999 Mw 6.6 event). "
                       "RF v3 was not trained for this region; no prediction is fabricated.",
             "no_fabricated_predictions": True,
@@ -139,7 +166,7 @@ def rf_susceptibility_point(lat, lon):
             val = ds.read(1, window=Window(col, row, 1, 1))[0, 0]
             nodata = ds.nodata
             import numpy as np
-            if nodata is not None and (val == nodata or not np.isfinite(val)):
+            if nodata is not None and (val == nodata or not math.isfinite(float(val))):
                 return {
                     "service": "TerraGuard AI API",
                     "status": "nodata",
@@ -147,7 +174,8 @@ def rf_susceptibility_point(lat, lon):
                     "susceptibility_probability": None,
                     "frozen_threshold": FROZEN_THRESHOLD,
                     "model": RF_MODEL_NAME,
-        "model_kind": "chamoli",
+                    "model_kind": "chamoli",
+                    "message": "Point location has no valid terrain-derived susceptibility (nodata/masked).",
                     "reason": "Point location has no valid terrain-derived susceptibility (nodata/masked).",
                     "no_fabricated_predictions": True,
                 }
@@ -206,10 +234,6 @@ def india_susceptibility_point(lat, lon):
         with rasterio.open(str(INDIA_RASTER)) as ds:
             row, col = rowcol(ds.transform, lon, lat)
             if row < 0 or row >= ds.height or col < 0 or col >= ds.width:
-                value = -9999.0
-            else:
-                value = ds.read(1, window=Window(col, row, 1, 1))[0, 0]
-            if value == -9999.0 or value != value:
                 return {
                     "service": "TerraGuard AI API",
                     "status": "outside_coverage",
@@ -217,8 +241,30 @@ def india_susceptibility_point(lat, lon):
                     "susceptibility_probability": None,
                     "frozen_threshold": INDIA_FROZEN_THRESHOLD,
                     "model": INDIA_MODEL_NAME,
-        "model_kind": "india",
-                    "reason": "Cell has no verified SRTM coverage — no prediction fabricated.",
+                    "model_kind": "india",
+                    "message": "Point is outside the India RF coverage grid (lon 68-98, lat 6-37).",
+                    "reason": "Point is outside the India RF coverage grid (lon 68-98, lat 6-37).",
+                    "no_fabricated_predictions": True,
+                }
+            arr = ds.read(1, window=Window(col, row, 1, 1), masked=True)
+            masked = bool(arr.mask[0, 0]) if hasattr(arr, 'mask') else False
+            raw = arr[0, 0]
+            try:
+                value = float(raw)
+            except (ValueError, TypeError, OverflowError):
+                value = float('nan')
+            nodata = ds.nodata
+            if masked or not math.isfinite(value) or (nodata is not None and value == float(nodata)):
+                return {
+                    "service": "TerraGuard AI API",
+                    "status": "nodata",
+                    "coordinates": {"latitude": lat, "longitude": lon},
+                    "susceptibility_probability": None,
+                    "frozen_threshold": INDIA_FROZEN_THRESHOLD,
+                    "model": INDIA_MODEL_NAME,
+                    "model_kind": "india",
+                    "message": "Cell in the national SRTM footprint has no verified susceptibility (nodata/masked); no prediction fabricated.",
+                    "reason": "Cell in the national SRTM footprint has no verified susceptibility (nodata/masked); no prediction fabricated.",
                     "no_fabricated_predictions": True,
                 }
             return {
@@ -228,9 +274,9 @@ def india_susceptibility_point(lat, lon):
                 "susceptibility_probability": float(value),
                 "frozen_threshold": INDIA_FROZEN_THRESHOLD,
                 "model": INDIA_MODEL_NAME,
-        "model_kind": "india",
+                "model_kind": "india",
                 "model_note": "Precomputed RF v1-national raster (frozen experimental output, ~1 km grid from 353 audited SRTM tiles). Point lookup, not a live model call.",
-                "coverage": "~38% of the national bbox has verified DEM coverage; outside cells return outside_coverage.",
+                "coverage": "~38% of the national bbox has verified DEM coverage; outside cells return outside_coverage/nodata.",
                 "overlay": {
                     "png": "/susceptibility/india_overlay.png",
                     "bounds": "/susceptibility/india_overlay.json",
@@ -381,15 +427,16 @@ def handle_model_info(handler):
 def handle_rf_susceptibility(handler):
     """RF susceptibility inference for a point.
 
+    Accepts lat/lon OR latitude/longitude. Missing/invalid values return an
+    explicit error — never a silent Chamoli default.
+
     model=india   (default) — RF v1-national raster (~1 km, 353 audited SRTM tiles)
     model=chamoli           — RF v3 Chamoli pilot raster (~30 m, 1999 Mw 6.6 event, EXPERIMENTAL)
     """
     params = urllib.parse.parse_qs(urllib.parse.urlsplit(handler.path).query)
-    try:
-        lat = float(params.get("lat", [30.33])[0])
-        lon = float(params.get("lon", [79.42])[0])
-    except (ValueError, TypeError, IndexError):
-        send_error_json(handler, 400, "Missing or invalid 'lat'/'lon' query parameters")
+    lat, lon, err = parse_coords(params)
+    if err:
+        send_error_json(handler, 400, err)
         return
     model = (params.get("model", ["india"])[0] or "india").lower()
     if model == "chamoli":
@@ -470,11 +517,9 @@ def handle_screening(handler):
     N_rain     = max normalized indicator over complete observed (or forecast) windows
     """
     params = urllib.parse.parse_qs(urllib.parse.urlsplit(handler.path).query)
-    try:
-        lat = float(params.get("lat", [30.33])[0])
-        lon = float(params.get("lon", [79.42])[0])
-    except (ValueError, TypeError, IndexError):
-        send_error_json(handler, 400, "Missing or invalid 'lat'/'lon' query parameters")
+    lat, lon, err = parse_coords(params)
+    if err:
+        send_error_json(handler, 400, err)
         return
 
     try:
@@ -588,11 +633,9 @@ def handle_screening(handler):
 def handle_weather(handler):
     """Fetch weather via the shared Open-Meteo cache (same data as screening)."""
     params = urllib.parse.parse_qs(urllib.parse.urlsplit(handler.path).query)
-    try:
-        lat = float(params.get("lat", [30.33])[0])
-        lon = float(params.get("lon", [79.42])[0])
-    except (ValueError, TypeError, IndexError):
-        send_error_json(handler, 400, "Missing or invalid 'lat'/'lon' query parameters")
+    lat, lon, err = parse_coords(params)
+    if err:
+        send_error_json(handler, 400, err)
         return
 
     try:
