@@ -25,6 +25,8 @@
     <symbol id="i-cloud" viewBox="0 0 24 24"><path fill="currentColor" d="M6 18a4 4 0 1 1 .6-7.95A5.5 5.5 0 0 1 17.3 9.5 4.5 4.5 0 0 1 18 18H6z"/></symbol>
     <symbol id="i-chevron" viewBox="0 0 24 24"><path fill="currentColor" d="M6 9l6 6 6-6"/></symbol>
     <symbol id="i-rain" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 6l12 12M18 6l-12 12"/></symbol>
   </svg>
 
   <!-- ══ Top navigation ═══════════════════════════════════════════════════ -->
@@ -41,6 +43,15 @@
       <a class="navlink" data-nav="dashboard" href="/">Dashboard</a>
       <a class="navlink" data-nav="map" href="/map.html">Map</a>
     </nav>
+
+    <div class="search" id="searchWrap" role="search">
+      <svg class="search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search any location..." autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="none" enterkeyhint="search" aria-label="Search any location or address">
+      <button class="search-clear" id="searchClear" type="button" hidden aria-label="Clear search" title="Clear search">
+        <svg aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+      <div class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Search results" hidden></div>
+    </div>
 
     <div class="area-chip" title="Current study area" id="areaChip">
       <span class="dot"></span>

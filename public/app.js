@@ -409,6 +409,243 @@
     }
   }
 
+  /* ── Global location search (OpenStreetMap Nominatim, free) ─────────────
+     - debounced, rate-limited, no API key required
+     - results shown as suggestion dropdown; Enter / arrows / Escape work
+     - selecting a result flies the map and hits the EXISTING RF endpoint */
+  const SEARCH = {
+    url: 'https://nominatim.openstreetmap.org/search',
+    limit: 6,
+    debounceMs: 350,
+    minLen: 3,
+    timer: null,
+    abort: null,
+    results: [],
+    index: -1,
+    token: 0,
+  };
+
+  function searchShortLabel(item) {
+    const a = item.address || {};
+    return a.city || a.town || a.village || a.suburb || a.county || a.state || a.country || (item.display_name || 'Selected location').split(',')[0].trim();
+  }
+
+  function searchContext(item) {
+    const a = item.address || {};
+    const parts = [];
+    if (a.state) parts.push(a.state);
+    if (a.country) parts.push(a.country);
+    else if (a.country_code) parts.push(String(a.country_code).toUpperCase());
+    if (a.road && !parts.includes(a.road)) parts.unshift(a.road);
+    return parts.slice(0, 3).join(' · ') || (item.display_name || '').split(',').slice(1).join(',').trim();
+  }
+
+  function zoomForResult(item) {
+    const t = (item.type || '').toLowerCase();
+    const c = (item.class || '').toLowerCase();
+    if (['country', 'continent', 'state', 'region'].includes(t) || c === 'boundary') return 6;
+    if (['city', 'town', 'county'].includes(t)) return 11;
+    if (['village', 'suburb', 'hamlet', 'quarter', 'city_district'].includes(t)) return 12;
+    if (c === 'place') return 12;
+    return 14; // POI / address / amenity — closer look
+  }
+
+  function renderSearchResults(list, query, state) {
+    const box = $('searchDropdown');
+    if (!box) return;
+    if (state === 'loading') {
+      box.innerHTML = '<div class="search-status"><span class="search-spinner"></span>Searching for “' + esc(query || '…') + '”…</div>';
+      box.hidden = false;
+      return;
+    }
+    if (state === 'error') {
+      box.innerHTML = '<div class="search-status error">Search unavailable — check network.</div>';
+      box.hidden = false;
+      return;
+    }
+    if (!list || !list.length) {
+      box.innerHTML = '<div class="search-status empty">No results for “' + esc(query || '') + '”. Try a different place or spelling.</div>';
+      box.hidden = false;
+      return;
+    }
+    box.innerHTML = list.map((item, i) => {
+      const title = esc(item.display_name ? item.display_name.split(',')[0] : 'Unknown place');
+      const ctx = esc(searchContext(item));
+      const type = esc((item.type || item.class || 'place').replace(/_/g, ' '));
+      return '<button class="search-item" role="option" data-index="' + i + '" aria-selected="false">' +
+        '<span class="search-item-type">' + type + '</span>' +
+        '<span class="search-item-text"><span class="search-item-title">' + title + '</span>' +
+        (ctx ? '<span class="search-item-sub">' + ctx + '</span>' : '') +
+        '</span>' +
+      '</button>';
+    }).join('');
+    box.hidden = false;
+  }
+
+  function closeSearchDropdown(clearResults) {
+    const box = $('searchDropdown');
+    if (box) box.hidden = true;
+    if (clearResults) {
+      SEARCH.results = [];
+      SEARCH.index = -1;
+    }
+  }
+
+  function setActiveSearchItem(i) {
+    const box = $('searchDropdown');
+    if (!box) return;
+    const items = box.querySelectorAll('.search-item');
+    items.forEach((el, j) => {
+      el.classList.toggle('active', j === i);
+      el.setAttribute('aria-selected', j === i ? 'true' : 'false');
+    });
+    if (i >= 0 && items[i]) items[i].scrollIntoView({ block: 'nearest' });
+  }
+
+  async function runSearch(q) {
+    const token = ++SEARCH.token;
+    renderSearchResults(null, q, 'loading');
+
+    if (SEARCH.abort) { try { SEARCH.abort.abort(); } catch (e) {} }
+    const ctrl = new AbortController();
+    SEARCH.abort = ctrl;
+
+    try {
+      const params = new URLSearchParams({
+        q: q,
+        format: 'json',
+        limit: String(SEARCH.limit),
+        addressdetails: '1',
+        'accept-language': 'en,hi',
+      });
+      const res = await fetch(SEARCH.url + '?' + params.toString(), {
+        signal: ctrl.signal,
+        headers: { 'Accept': 'application/json' },
+      });
+      if (token !== SEARCH.token) return; // stale response
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (token !== SEARCH.token) return;
+      SEARCH.results = Array.isArray(data) ? data : [];
+      SEARCH.index = SEARCH.results.length ? 0 : -1;
+      renderSearchResults(SEARCH.results, q);
+      setActiveSearchItem(SEARCH.index);
+    } catch (e) {
+      if (token !== SEARCH.token) return;
+      if (e && e.name === 'AbortError') return;
+      SEARCH.results = [];
+      renderSearchResults(null, q, 'error');
+    }
+  }
+
+  function pickSearchResult(i) {
+    const item = SEARCH.results[i];
+    if (!item) return false;
+    const lat = num(item.lat);
+    const lon = num(item.lon);
+    if (lat === null || lon === null || !isFinite(lat) || !isFinite(lon)) return false;
+
+    const zoom = zoomForResult(item);
+    const label = searchShortLabel(item);
+
+    if (map) {
+      map.flyTo([lat, lon], zoom, { duration: 0.9 });
+    }
+    selectPoint(lat, lon, label, { skipMarker: false });
+
+    const input = $('searchInput');
+    if (input) input.value = label;
+    const clearBtn = $('searchClear');
+    if (clearBtn) clearBtn.hidden = false;
+    closeSearchDropdown(true);
+    setStatus('Showing ' + label + ' — RF / rainfall / weather queried for selected point', 'ok');
+    return true;
+  }
+
+  function wireSearch() {
+    const input = $('searchInput');
+    if (!input) return;
+
+    on(input, 'input', (e) => {
+      const q = e.target.value.trim();
+      const clearBtn = $('searchClear');
+      if (clearBtn) clearBtn.hidden = q.length === 0;
+      clearTimeout(SEARCH.timer);
+      if (q.length < SEARCH.minLen) {
+        closeSearchDropdown(true);
+        return;
+      }
+      SEARCH.timer = setTimeout(() => runSearch(q), SEARCH.debounceMs);
+    });
+
+    on(input, 'keydown', (e) => {
+      const items = SEARCH.results;
+      if (e.key === 'ArrowDown') {
+        if (!items.length) return;
+        e.preventDefault();
+        SEARCH.index = Math.min(items.length - 1, (SEARCH.index < 0 ? 0 : SEARCH.index + 1));
+        setActiveSearchItem(SEARCH.index);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        if (!items.length) return;
+        e.preventDefault();
+        SEARCH.index = Math.max(0, (SEARCH.index < 0 ? 0 : SEARCH.index - 1));
+        setActiveSearchItem(SEARCH.index);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const idx = SEARCH.index >= 0 ? SEARCH.index : 0;
+        if (items.length) pickSearchResult(idx);
+        return;
+      }
+      if (e.key === 'Escape') {
+        closeSearchDropdown(true);
+        input.blur();
+        return;
+      }
+    });
+
+    on(input, 'focus', () => {
+      if (SEARCH.results.length) { renderSearchResults(SEARCH.results, input.value); setActiveSearchItem(SEARCH.index); }
+    });
+
+    on(input, 'blur', () => {
+      /* small delay so click on a result lands before dropdown closes */
+      setTimeout(() => { if (document.activeElement !== input) closeSearchDropdown(false); }, 160);
+    });
+
+    const dropdown = $('searchDropdown');
+    if (dropdown) {
+      on(dropdown, 'pointerdown', (e) => {
+        const btn = e.target.closest('.search-item');
+        if (!btn) return;
+        e.preventDefault();
+        const idx = parseInt(btn.getAttribute('data-index'), 10);
+        if (!isNaN(idx)) pickSearchResult(idx);
+      });
+    }
+
+    const clearBtn = $('searchClear');
+    if (clearBtn) {
+      on(clearBtn, 'click', () => {
+        input.value = '';
+        clearBtn.hidden = true;
+        closeSearchDropdown(true);
+        updateCoords(DEFAULT_POINT.lat, DEFAULT_POINT.lon);
+        input.focus();
+        selectPoint(DEFAULT_POINT.lat, DEFAULT_POINT.lon, DEFAULT_POINT.label);
+      });
+    }
+
+    /* global dismiss on outside click */
+    on(document, 'pointerdown', (e) => {
+      const wrap = $('searchWrap');
+      if (wrap && !wrap.contains(e.target)) closeSearchDropdown(false);
+    });
+  }
+
   /* ── status bar ───────────────────────────────────────────────────────── */
   function updateCoords(lat, lon) {
     const ns = lat >= 0 ? 'N' : 'S';
@@ -1150,6 +1387,7 @@
     initMap();
     wirePanels();
     wireModelPicker();
+    wireSearch();
 
     /* Layout settles after CSS/fonts — force Leaflet to remeasure */
     const invalidate = () => { if (map) map.invalidateSize(); };
