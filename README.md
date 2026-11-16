@@ -1,3 +1,14 @@
+# TerraGuard AI 🌍
+
+### AI-Powered Landslide Susceptibility Assessment & Rainfall Monitoring
+
+🚀 **[🌐 LIVE WEBSITE — Explore TerraGuard AI](https://terraguard-ai-production.up.railway.app/)**
+
+An experimental landslide susceptibility assessment and rainfall monitoring platform focused on Chamoli, Uttarakhand, India.
+
+**[View Live Application](https://terraguard-ai-production.up.railway.app/) · [GitHub Repository](https://github.com/tejaswip314-hub/TerraGuard-AI)
+
+
 # TerraGuard AI
 
 Full-stack landslide susceptibility assessment website with Random Forest modeling and real-time rainfall monitoring.
